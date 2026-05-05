@@ -186,33 +186,21 @@ export default function PropostaIA({ user }: PropostaIAProps) {
       doc.setDrawColor(200, 194, 186); doc.setLineWidth(0.3);
       for (let i = 0; i < 6; i++) doc.line(W - 55 + i * 7, 8, W - 55 + i * 7, 32);
 
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(168, 158, 144);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(13); doc.setTextColor(168, 158, 144);
       doc.text('PROPOSTA', mL, 74);
 
       doc.setFillColor(245, 158, 11); doc.rect(mL, 78, W - mL - mR, 2, 'F');
 
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(168, 158, 144);
-      doc.text('PREPARADO PARA', mL, 102);
-
       doc.setFont('helvetica', 'bold'); doc.setFontSize(36); doc.setTextColor(15, 14, 13);
       const clienteLines = doc.splitTextToSize(nomeClientePDF, cW);
-      doc.text(clienteLines, mL, 120);
+      doc.text(clienteLines, mL, 106);
 
       // Bloco CONFIDENCIAL
       const clienteH = clienteLines.length * 13;
-      const blockY = 120 + clienteH + 10;
-      doc.setFillColor(245, 158, 11); doc.rect(mL, blockY, 3, 14, 'F');
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(245, 158, 11);
-      doc.text('CONFIDENCIAL', mL + 7, blockY + 9);
-
-      const aboutY = Math.min(blockY + 30, 198);
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(168, 158, 144);
-      doc.text('SOBRE O PROJETO', mL, aboutY);
-      const descCoverLines = doc.splitTextToSize(descricaoTexto.substring(0, 240), cW).slice(0, 4);
-      doc.setFontSize(8.5); doc.setTextColor(120, 112, 104);
-      descCoverLines.forEach((line: string, i: number) => {
-        doc.text(line, mL, aboutY + 8 + i * 5.8);
-      });
+      const blockY = 106 + clienteH + 10;
+      doc.setFillColor(245, 158, 11); doc.rect(mL, blockY, 3, 18, 'F');
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(245, 158, 11);
+      doc.text('CONFIDENCIAL', mL + 7, blockY + 11);
 
       doc.setDrawColor(216, 210, 202); doc.setLineWidth(0.25); doc.line(mL, 240, W - mR, 240);
 
@@ -326,32 +314,20 @@ export default function PropostaIA({ user }: PropostaIAProps) {
       doc.setDrawColor(60, 50, 40); doc.setLineWidth(0.3);
       for (let i = 0; i < 6; i++) doc.line(W - 55 + i * 7, 8, W - 55 + i * 7, 32);
 
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(90, 80, 70);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(13); doc.setTextColor(90, 80, 70);
       doc.text('PROPOSTA', mL, 74);
       doc.setFillColor(245, 158, 11); doc.rect(mL, 78, W - mL - mR, 2, 'F');
 
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(90, 80, 70);
-      doc.text('PREPARADO PARA', mL, 102);
-
       doc.setFont('helvetica', 'bold'); doc.setFontSize(36); doc.setTextColor(245, 240, 236);
       const clienteLines = doc.splitTextToSize(nomeClientePDF.toUpperCase(), W - mL - mR);
-      doc.text(clienteLines, mL, 120);
+      doc.text(clienteLines, mL, 106);
 
       // Bloco CONFIDENCIAL
       const clienteH = clienteLines.length * 13;
-      const blockY = 120 + clienteH + 10;
-      doc.setFillColor(245, 158, 11); doc.rect(mL, blockY, 3, 14, 'F');
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(245, 158, 11);
-      doc.text('CONFIDENCIAL', mL + 7, blockY + 9);
-
-      const aboutY = Math.min(blockY + 30, 198);
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(90, 80, 70);
-      doc.text('SOBRE O PROJETO', mL, aboutY);
-      const descCoverLines = doc.splitTextToSize(descricaoTexto.substring(0, 240), W - mL - mR).slice(0, 4);
-      doc.setFontSize(8.5); doc.setTextColor(106, 96, 86);
-      descCoverLines.forEach((line: string, i: number) => {
-        doc.text(line, mL, aboutY + 8 + i * 5.8);
-      });
+      const blockY = 106 + clienteH + 10;
+      doc.setFillColor(245, 158, 11); doc.rect(mL, blockY, 3, 18, 'F');
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(245, 158, 11);
+      doc.text('CONFIDENCIAL', mL + 7, blockY + 11);
 
       doc.setDrawColor(42, 37, 32); doc.setLineWidth(0.25); doc.line(mL, 240, W - mR, 240);
 
