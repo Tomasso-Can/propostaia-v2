@@ -215,11 +215,11 @@ export default function LandingPage() {
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold mb-6" style={{ background: 'rgba(245,158,11,0.1)', color: AMBER, border: '1px solid rgba(245,158,11,0.2)' }}>
           <Wand2 className="w-3.5 h-3.5" /> Propostas comerciais geradas por IA
         </div>
-        <h1 className="text-5xl md:text-7xl lg:text-[82px] font-black tracking-tighter leading-[0.88] mb-5 text-stone-100">
+        <h1 className="text-4xl md:text-7xl lg:text-[82px] font-black tracking-tighter leading-[0.88] mb-5 text-stone-100">
           Proposta profissional<br /><span style={{ color: AMBER }}>em 60 segundos.</span>
         </h1>
-        <p className="text-base text-stone-400 max-w-md mx-auto mb-10 leading-relaxed">
-          Descreve o projeto. A Seshat escreve a proposta. Exportas em PDF e envias.
+        <p className="text-base text-stone-400 max-w-lg mx-auto mb-10 leading-relaxed">
+          Propostas comerciais elegantes, persuasivas e profissionais — geradas em segundos a partir do seu briefing.
         </p>
         <div className="flex items-center justify-center gap-4 flex-wrap mb-7">
           <button onClick={() => openAuth('signup')} className="px-8 py-4 rounded-2xl font-black text-base flex items-center gap-2 transition-all" style={{ background: AMBER, color: BG, boxShadow: '0 8px 32px rgba(245,158,11,0.32)' }}>
@@ -227,7 +227,7 @@ export default function LandingPage() {
           </button>
           <button onClick={() => openAuth('login')} className="text-stone-500 hover:text-stone-300 px-5 py-4 font-semibold text-sm transition-all">Já tenho conta →</button>
         </div>
-        <div className="flex items-center justify-center gap-2 text-xs flex-wrap" style={{ color: '#3A3530' }}>
+        <div className="flex items-center justify-center gap-x-3 gap-y-1 text-xs flex-wrap px-4" style={{ color: '#3A3530' }}>
           <span>Grátis para começar</span>
           <span>·</span>
           <span>3 propostas incluídas</span>
@@ -237,7 +237,7 @@ export default function LandingPage() {
       </section>
 
       {/* DEMO ANIMADO */}
-      <section className="max-w-6xl mx-auto px-6 pb-28">
+      <section className="hidden md:block max-w-6xl mx-auto px-6 pb-28">
         <div className="rounded-3xl p-3 shadow-2xl" style={{ background: '#161412', border: '1px solid #292524' }}>
           <div className="rounded-2xl overflow-hidden grid grid-cols-5" style={{ background: BG, height: '460px' }}>
 
@@ -374,7 +374,7 @@ export default function LandingPage() {
           {[
             { icon: <PenLine className="w-5 h-5" />, num: '01', title: 'Descreva o projeto', desc: 'Escreva o briefing em texto livre: o que inclui o trabalho, prazo, preço e contexto. Sem formulários complexos.' },
             { icon: <Wand2 className="w-5 h-5" />, num: '02', title: 'A proposta é redigida', desc: 'Em segundos, a Seshat produz uma proposta completa com 8 secções estruturadas, linguagem natural e tom profissional.' },
-            { icon: <Send className="w-5 h-5" />, num: '03', title: 'Exporte e envie', desc: 'Edite se quiser, escolha o tema visual e exporte o PDF. Pronto a enviar ao cliente.' },
+            { icon: <Send className="w-5 h-5" />, num: '03', title: 'Exporte e envie', desc: 'Reveja se quiser, escolha o tema visual e exporte o PDF. Pronto a enviar ao cliente.' },
           ].map((step, i) => (
             <div key={i} className="rounded-3xl p-7 transition-all" style={{ background: '#161412', border: '1px solid #292524' }}>
               <div className="flex items-start justify-between mb-6">
