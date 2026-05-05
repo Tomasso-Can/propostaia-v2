@@ -213,7 +213,7 @@ export default function LandingPage() {
       {/* HERO */}
       <section className="max-w-6xl mx-auto px-6 pt-14 pb-16 text-center">
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold mb-6" style={{ background: 'rgba(245,158,11,0.1)', color: AMBER, border: '1px solid rgba(245,158,11,0.2)' }}>
-          <Wand2 className="w-3.5 h-3.5" /> Feito para profissionais lusófonos
+          <Wand2 className="w-3.5 h-3.5" /> Para quem valoriza a primeira impressão
         </div>
         <h1 className="text-4xl md:text-7xl lg:text-[82px] font-black tracking-tighter leading-[0.88] mb-5 text-stone-100">
           Proposta profissional<br /><span style={{ color: AMBER }}>em 60 segundos.</span>
