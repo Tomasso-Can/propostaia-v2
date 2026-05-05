@@ -213,13 +213,13 @@ export default function LandingPage() {
       {/* HERO */}
       <section className="max-w-6xl mx-auto px-6 pt-14 pb-16 text-center">
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold mb-6" style={{ background: 'rgba(245,158,11,0.1)', color: AMBER, border: '1px solid rgba(245,158,11,0.2)' }}>
-          <Wand2 className="w-3.5 h-3.5" /> Propostas comerciais geradas por IA
+          <Wand2 className="w-3.5 h-3.5" /> Feito para profissionais lusófonos
         </div>
         <h1 className="text-4xl md:text-7xl lg:text-[82px] font-black tracking-tighter leading-[0.88] mb-5 text-stone-100">
           Proposta profissional<br /><span style={{ color: AMBER }}>em 60 segundos.</span>
         </h1>
         <p className="text-base text-stone-400 max-w-lg mx-auto mb-10 leading-relaxed">
-          Propostas comerciais elegantes, persuasivas e profissionais — geradas em segundos a partir do seu briefing.
+          Propostas comerciais elegantes e persuasivas — geradas em segundos a partir do seu briefing.
         </p>
         <div className="flex items-center justify-center gap-4 flex-wrap mb-7">
           <button onClick={() => openAuth('signup')} className="px-8 py-4 rounded-2xl font-black text-base flex items-center gap-2 transition-all" style={{ background: AMBER, color: BG, boxShadow: '0 8px 32px rgba(245,158,11,0.32)' }}>
@@ -237,12 +237,12 @@ export default function LandingPage() {
       </section>
 
       {/* DEMO ANIMADO */}
-      <section className="hidden md:block max-w-6xl mx-auto px-6 pb-28">
+      <section className="max-w-6xl mx-auto px-6 pb-28">
         <div className="rounded-3xl p-3 shadow-2xl" style={{ background: '#161412', border: '1px solid #292524' }}>
           <div className="rounded-2xl overflow-hidden grid grid-cols-5" style={{ background: BG, height: '460px' }}>
 
             {/* Painel esquerdo — Form animado */}
-            <div className="col-span-2 p-7 flex flex-col gap-4" style={{ borderRight: '1px solid #1C1917' }}>
+            <div className="col-span-2 p-7 hidden md:flex flex-col gap-4" style={{ borderRight: '1px solid #1C1917' }}>
               <p className="text-[9px] font-bold text-stone-600 uppercase tracking-widest">Briefing</p>
 
               {/* Campo Autor */}
@@ -286,7 +286,7 @@ export default function LandingPage() {
             </div>
 
             {/* Painel direito — Preview */}
-            <div className="col-span-3 relative overflow-hidden flex flex-col">
+            <div className="col-span-5 md:col-span-3 relative overflow-hidden flex flex-col">
               {(demoPhase === 'idle' || demoPhase === 'typing_autor' || demoPhase === 'typing_cliente' || demoPhase === 'typing_desc' || demoPhase === 'btn_hover') && (
                 <div className="flex-1 flex flex-col items-center justify-center gap-3">
                   <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: '#1C1917', border: '1px solid #292524' }}>
@@ -374,7 +374,7 @@ export default function LandingPage() {
           {[
             { icon: <PenLine className="w-5 h-5" />, num: '01', title: 'Descreva o projeto', desc: 'Escreva o briefing em texto livre: o que inclui o trabalho, prazo, preço e contexto. Sem formulários complexos.' },
             { icon: <Wand2 className="w-5 h-5" />, num: '02', title: 'A proposta é redigida', desc: 'Em segundos, a Seshat produz uma proposta completa com 8 secções estruturadas, linguagem natural e tom profissional.' },
-            { icon: <Send className="w-5 h-5" />, num: '03', title: 'Exporte e envie', desc: 'Reveja se quiser, escolha o tema visual e exporte o PDF. Pronto a enviar ao cliente.' },
+            { icon: <Send className="w-5 h-5" />, num: '03', title: 'Exporte e envie', desc: 'Edite se quiser, escolha o tema visual e exporte o PDF. Pronto a enviar ao cliente.' },
           ].map((step, i) => (
             <div key={i} className="rounded-3xl p-7 transition-all" style={{ background: '#161412', border: '1px solid #292524' }}>
               <div className="flex items-start justify-between mb-6">
