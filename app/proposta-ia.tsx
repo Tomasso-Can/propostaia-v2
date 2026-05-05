@@ -518,7 +518,10 @@ export default function PropostaIA({ user }: PropostaIAProps) {
         style={{ borderBottom: `1px solid ${C.border}`, background: `${C.bg}f5`, backdropFilter: 'blur(12px)' }}>
         <div className="flex items-center gap-3">
           <img src="/icon.svg" alt="" className="h-6 w-auto" />
-          <img src="/logo.svg" alt="Seshat" className="h-4 w-auto" />
+          <div className="flex flex-col gap-0.5">
+            <img src="/logo.svg" alt="Seshat" className="h-4 w-auto" />
+            <img src="/tagline.svg" alt="Proposals · Made Simple" className="h-1.5 w-auto" />
+          </div>
         </div>
         <div className="flex items-center gap-4">
           {!isPremium && (

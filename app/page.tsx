@@ -200,7 +200,10 @@ export default function LandingPage() {
       <nav className="flex justify-between items-center px-8 py-5 max-w-6xl mx-auto">
         <div className="flex items-center gap-3">
           <img src="/icon.svg" alt="" className="h-8 w-auto" />
-          <img src="/logo.svg" alt="Seshat" className="h-6 w-auto" />
+          <div className="flex flex-col gap-1">
+            <img src="/logo.svg" alt="Seshat" className="h-5 w-auto" />
+            <img src="/tagline.svg" alt="Proposals · Made Simple" className="h-2 w-auto" />
+          </div>
         </div>
         <button onClick={() => openAuth('login')} className="px-5 py-2 rounded-full text-sm font-semibold text-stone-400 hover:text-stone-100 transition-all" style={{ border: '1px solid #292524' }}>
           Entrar
