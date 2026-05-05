@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
-import { FileText, ArrowRight, Loader2, PenLine, Wand2, Send } from 'lucide-react';
+import { FileText, ArrowRight, Loader2, PenLine, Wand2, Send, Layers, Archive } from 'lucide-react';
 
 const AMBER = '#F59E0B';
 const BG = '#0C0A09';
@@ -209,17 +209,27 @@ export default function LandingPage() {
 
       {/* HERO */}
       <section className="max-w-6xl mx-auto px-6 pt-14 pb-16 text-center">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold mb-6" style={{ background: 'rgba(245,158,11,0.1)', color: AMBER, border: '1px solid rgba(245,158,11,0.2)' }}>
+          <Wand2 className="w-3.5 h-3.5" /> Propostas comerciais geradas por IA
+        </div>
         <h1 className="text-5xl md:text-7xl lg:text-[82px] font-black tracking-tighter leading-[0.88] mb-5 text-stone-100">
-          Propostas que<br /><span style={{ color: AMBER }}>fecham negócios.</span>
+          Proposta profissional<br /><span style={{ color: AMBER }}>em 60 segundos.</span>
         </h1>
-        <p className="text-base text-stone-400 max-w-xl mx-auto mb-10 leading-relaxed">
-          Transforme uma descrição simples numa proposta comercial elegante, persuasiva e profissional, pronta a enviar.
+        <p className="text-base text-stone-400 max-w-md mx-auto mb-10 leading-relaxed">
+          Descreve o projeto. A Seshat escreve a proposta. Exportas em PDF e envias.
         </p>
-        <div className="flex items-center justify-center gap-4 flex-wrap">
-          <button onClick={() => openAuth('signup')} className="px-8 py-4 rounded-2xl font-black text-base flex items-center gap-2 transition-all" style={{ background: AMBER, color: BG, boxShadow: '0 8px 32px rgba(245,158,11,0.22)' }}>
-            Começar agora <ArrowRight className="w-5 h-5" />
+        <div className="flex items-center justify-center gap-4 flex-wrap mb-7">
+          <button onClick={() => openAuth('signup')} className="px-8 py-4 rounded-2xl font-black text-base flex items-center gap-2 transition-all" style={{ background: AMBER, color: BG, boxShadow: '0 8px 32px rgba(245,158,11,0.32)' }}>
+            Começar grátis <ArrowRight className="w-5 h-5" />
           </button>
           <button onClick={() => openAuth('login')} className="text-stone-500 hover:text-stone-300 px-5 py-4 font-semibold text-sm transition-all">Já tenho conta →</button>
+        </div>
+        <div className="flex items-center justify-center gap-2 text-xs flex-wrap" style={{ color: '#3A3530' }}>
+          <span>Grátis para começar</span>
+          <span>·</span>
+          <span>3 propostas incluídas</span>
+          <span>·</span>
+          <span>Sem cartão de crédito</span>
         </div>
       </section>
 
@@ -427,13 +437,13 @@ export default function LandingPage() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[
-            { emoji: '✍️', title: 'Linguagem que convence', desc: 'Escrita fluída e natural, adaptada ao mercado lusófono. Profissional, persuasiva e pronta a enviar.' },
-            { emoji: '📋', title: 'Estrutura que converte', desc: 'Oito secções que cobrem tudo o que o cliente precisa de ver — do âmbito ao próximo passo.' },
-            { emoji: '🎨', title: 'Design que impressiona', desc: 'Branco Minimalista ou Preto Premium. A proposta chega ao cliente com apresentação profissional.' },
-            { emoji: '💾', title: 'Tudo guardado', desc: 'Cada proposta fica arquivada na sua conta, pronta a reexportar a qualquer momento.' },
+            { icon: <PenLine className="w-4 h-4" />, title: 'Linguagem que convence', desc: 'Escrita fluída e natural, adaptada ao mercado lusófono. Profissional, persuasiva e pronta a enviar.' },
+            { icon: <FileText className="w-4 h-4" />, title: 'Estrutura que converte', desc: 'Oito secções que cobrem tudo o que o cliente precisa de ver — do âmbito ao próximo passo.' },
+            { icon: <Layers className="w-4 h-4" />, title: 'Design que impressiona', desc: 'Branco Minimalista ou Preto Premium. A proposta chega ao cliente com apresentação profissional.' },
+            { icon: <Archive className="w-4 h-4" />, title: 'Tudo guardado', desc: 'Cada proposta fica arquivada na sua conta, pronta a reexportar a qualquer momento.' },
           ].map((f, i) => (
             <div key={i} className="rounded-2xl p-7 flex gap-5" style={{ background: '#111010', border: '1px solid #1E1C1A' }}>
-              <span className="text-2xl flex-shrink-0 mt-0.5">{f.emoji}</span>
+              <div className="flex-shrink-0 mt-0.5 p-2 rounded-lg" style={{ background: 'rgba(245,158,11,0.1)', color: AMBER }}>{f.icon}</div>
               <div>
                 <h3 className="text-sm font-black mb-1.5 text-stone-100">{f.title}</h3>
                 <p className="text-stone-500 text-sm leading-relaxed">{f.desc}</p>

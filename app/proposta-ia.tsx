@@ -167,7 +167,7 @@ export default function PropostaIA({ user }: PropostaIAProps) {
 
   // ─── PDF ────────────────────────────────────────────────────────────────────
 
-  const downloadPDF = (propostaTexto: string, nomeClientePDF: string) => {
+  const downloadPDF = (propostaTexto: string, nomeClientePDF: string, descricaoTexto: string = descricao) => {
     const doc = new jsPDF('p', 'mm', 'a4');
     const W = 210, H = 297;
     const hoje = new Date().toLocaleDateString('pt-PT');
@@ -204,6 +204,15 @@ export default function PropostaIA({ user }: PropostaIAProps) {
       doc.setFillColor(245, 158, 11); doc.rect(mL, blockY, 3, 14, 'F');
       doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(245, 158, 11);
       doc.text('CONFIDENCIAL', mL + 7, blockY + 9);
+
+      const aboutY = Math.min(blockY + 30, 198);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(168, 158, 144);
+      doc.text('SOBRE O PROJETO', mL, aboutY);
+      const descCoverLines = doc.splitTextToSize(descricaoTexto.substring(0, 240), cW).slice(0, 4);
+      doc.setFontSize(8.5); doc.setTextColor(120, 112, 104);
+      descCoverLines.forEach((line: string, i: number) => {
+        doc.text(line, mL, aboutY + 8 + i * 5.8);
+      });
 
       doc.setDrawColor(216, 210, 202); doc.setLineWidth(0.25); doc.line(mL, 240, W - mR, 240);
 
@@ -257,7 +266,7 @@ export default function PropostaIA({ user }: PropostaIAProps) {
         if (!l) return;
         if (isTitulo(l)) {
           if (y > PAGE_END - ORPHAN_GUARD) { doc.addPage(); drawWhitePage(); y = 30; }
-          y += 10;
+          y += 12;
           doc.setFont('helvetica', 'bold'); doc.setFontSize(11.5); doc.setTextColor(15, 14, 13);
           doc.text(l, mL, y);
           doc.setFillColor(245, 158, 11); doc.rect(mL, y + 2.5, 22, 1.2, 'F');
@@ -270,14 +279,14 @@ export default function PropostaIA({ user }: PropostaIAProps) {
               doc.addPage(); drawWhitePage(); y = 30;
               doc.setFont('helvetica', 'normal'); doc.setFontSize(10.5); doc.setTextColor(55, 50, 46);
             }
-            doc.text(wl, mL, y); y += 6.8;
+            doc.text(wl, mL, y); y += 7.0;
           });
-          y += 1.5;
+          y += 2.5;
         }
       });
 
       // Assinatura textual
-      if (y > 250) { doc.addPage(); drawWhitePage(); y = 30; }
+      if (y > 235) { doc.addPage(); drawWhitePage(); y = 30; }
       y += 16;
       doc.setDrawColor(216, 210, 202); doc.setLineWidth(0.25); doc.line(mL, y, mL + 40, y); y += 8;
       doc.setFont('helvetica', 'bold'); doc.setFontSize(10.5); doc.setTextColor(15, 14, 13);
@@ -335,6 +344,15 @@ export default function PropostaIA({ user }: PropostaIAProps) {
       doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(245, 158, 11);
       doc.text('CONFIDENCIAL', mL + 7, blockY + 9);
 
+      const aboutY = Math.min(blockY + 30, 198);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(90, 80, 70);
+      doc.text('SOBRE O PROJETO', mL, aboutY);
+      const descCoverLines = doc.splitTextToSize(descricaoTexto.substring(0, 240), W - mL - mR).slice(0, 4);
+      doc.setFontSize(8.5); doc.setTextColor(106, 96, 86);
+      descCoverLines.forEach((line: string, i: number) => {
+        doc.text(line, mL, aboutY + 8 + i * 5.8);
+      });
+
       doc.setDrawColor(42, 37, 32); doc.setLineWidth(0.25); doc.line(mL, 240, W - mR, 240);
 
       doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(245, 240, 236);
@@ -365,9 +383,9 @@ export default function PropostaIA({ user }: PropostaIAProps) {
         doc.setFillColor(13, 11, 10); doc.rect(0, 0, W, TOP_BAND, 'F');
         doc.setFillColor(245, 158, 11); doc.rect(0, TOP_BAND, STRIPE, H - TOP_BAND - BOT_BAND, 'F');
         doc.setFillColor(13, 11, 10); doc.rect(0, H - BOT_BAND, W, BOT_BAND, 'F');
-        doc.setFont('helvetica', 'bold'); doc.setFontSize(6.5); doc.setTextColor(74, 68, 60);
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(6.5); doc.setTextColor(245, 158, 11);
         doc.text('SESHAT', W - mR, 14, { align: 'right' });
-        doc.setFont('helvetica', 'normal'); doc.setTextColor(56, 50, 44);
+        doc.setFont('helvetica', 'normal'); doc.setTextColor(150, 142, 134);
         doc.text(nomeClientePDF.toUpperCase(), textX + 2, 14);
         if (!isPremium) {
           doc.setFont('helvetica', 'bold'); doc.setFontSize(38); doc.setTextColor(155, 148, 138);
@@ -390,7 +408,7 @@ export default function PropostaIA({ user }: PropostaIAProps) {
         if (!l) return;
         if (isTitulo(l)) {
           if (y > contentEnd - ORPHAN_GUARD) { doc.addPage(); drawDarkPage(); y = contentStart; }
-          y += 10;
+          y += 12;
           doc.setFont('helvetica', 'bold'); doc.setFontSize(11.5); doc.setTextColor(15, 14, 13);
           doc.text(l, textX, y);
           doc.setFillColor(245, 158, 11); doc.rect(textX, y + 2.5, 22, 1.2, 'F');
@@ -403,14 +421,14 @@ export default function PropostaIA({ user }: PropostaIAProps) {
               doc.addPage(); drawDarkPage(); y = contentStart;
               doc.setFont('helvetica', 'normal'); doc.setFontSize(10.5); doc.setTextColor(55, 50, 46);
             }
-            doc.text(wl, textX, y); y += 6.8;
+            doc.text(wl, textX, y); y += 7.0;
           });
-          y += 1.5;
+          y += 2.5;
         }
       });
 
       // Assinatura textual
-      if (y > contentEnd - 20) { doc.addPage(); drawDarkPage(); y = contentStart; }
+      if (y > contentEnd - 36) { doc.addPage(); drawDarkPage(); y = contentStart; }
       y += 16;
       doc.setDrawColor(245, 158, 11); doc.setLineWidth(0.4); doc.line(textX, y, textX + 36, y); y += 8;
       doc.setFont('helvetica', 'bold'); doc.setFontSize(10.5); doc.setTextColor(15, 14, 13);
@@ -687,9 +705,11 @@ export default function PropostaIA({ user }: PropostaIAProps) {
                   className="w-full py-4 rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-all"
                   style={atLimit
                     ? { background: 'rgba(248,113,113,0.1)', color: '#F87171', border: '1px solid rgba(248,113,113,0.2)', cursor: 'pointer' }
-                    : loading || !descricao.trim() || !nomeCliente.trim() || !nomeUtilizador.trim()
-                      ? { background: C.surface, color: C.textFaint, cursor: 'not-allowed' }
-                      : { background: C.amber, color: C.bg, boxShadow: '0 4px 20px rgba(245,158,11,0.2)' }}>
+                    : loading
+                      ? { background: 'rgba(245,158,11,0.12)', color: C.amber, border: `1px solid rgba(245,158,11,0.2)`, cursor: 'not-allowed' }
+                      : !descricao.trim() || !nomeCliente.trim() || !nomeUtilizador.trim()
+                        ? { background: 'transparent', color: C.textFaint, border: `1px solid ${C.border}`, cursor: 'not-allowed' }
+                        : { background: C.amber, color: C.bg, boxShadow: '0 4px 20px rgba(245,158,11,0.28)' }}>
                   {atLimit
                     ? <><Lock className="w-4 h-4" /> Limite atingido — Ver planos</>
                     : loading
@@ -801,7 +821,7 @@ export default function PropostaIA({ user }: PropostaIAProps) {
                         onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = C.borderLight; el.style.color = C.textMuted; }}>
                         <Pencil className="w-3 h-3" /> Editar
                       </button>
-                      <button onClick={() => downloadPDF(p.proposta_texto, p.nome_cliente)}
+                      <button onClick={() => downloadPDF(p.proposta_texto, p.nome_cliente, p.descricao)}
                         className="py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all"
                         style={{ background: C.surfaceAlt, color: C.textMuted, border: `1px solid ${C.borderLight}` }}
                         onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.background = C.amber; el.style.color = C.bg; el.style.borderColor = C.amber; }}
