@@ -31,6 +31,7 @@ export const metadata: Metadata = {
     description: 'Descreve o projeto, a Seshat escreve a proposta comercial completa. Exporta em PDF profissional e envia ao cliente.',
   },
   robots: { index: true, follow: true },
+  verification: { google: 'rsM-3riKrGIZZ5KU7d2ubeF0dRnpXRTqr5QDwr-6tzI' },
 };
 
 export default function RootLayout({
