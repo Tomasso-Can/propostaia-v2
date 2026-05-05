@@ -198,9 +198,9 @@ export default function LandingPage() {
 
       {/* NAV */}
       <nav className="flex justify-between items-center px-8 py-5 max-w-6xl mx-auto">
-        <div className="flex items-center gap-2.5 font-black text-2xl tracking-tight">
-          <div className="p-2 rounded-xl" style={{ background: AMBER }}><FileText className="w-5 h-5" style={{ color: BG }} /></div>
-          Seshat
+        <div className="flex items-center gap-3">
+          <img src="/icon.svg" alt="" className="h-7 w-auto" />
+          <img src="/logo.svg" alt="Seshat" className="h-5 w-auto" />
         </div>
         <button onClick={() => openAuth('login')} className="px-5 py-2 rounded-full text-sm font-semibold text-stone-400 hover:text-stone-100 transition-all" style={{ border: '1px solid #292524' }}>
           Entrar

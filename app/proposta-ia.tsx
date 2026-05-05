@@ -516,9 +516,9 @@ export default function PropostaIA({ user }: PropostaIAProps) {
       {/* Header */}
       <header className="flex items-center justify-between px-8 py-4 sticky top-0 z-10"
         style={{ borderBottom: `1px solid ${C.border}`, background: `${C.bg}f5`, backdropFilter: 'blur(12px)' }}>
-        <div className="flex items-center gap-2 font-black text-base tracking-tight">
-          <div className="p-1.5 rounded-lg" style={{ background: C.amber }}><FileText className="w-4 h-4" style={{ color: C.bg }} /></div>
-          <span style={{ color: C.text }}>Seshat</span>
+        <div className="flex items-center gap-3">
+          <img src="/icon.svg" alt="" className="h-6 w-auto" />
+          <img src="/logo.svg" alt="Seshat" className="h-4 w-auto" />
         </div>
         <div className="flex items-center gap-4">
           {!isPremium && (
