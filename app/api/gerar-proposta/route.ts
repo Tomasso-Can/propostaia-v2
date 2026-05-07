@@ -64,6 +64,16 @@ export async function POST(request: NextRequest) {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
 
+  // Enforce free limit server-side
+  const { data: profile } = await supabase.from('profiles').select('is_premium').eq('id', session.user.id).single();
+  const isPremium = profile?.is_premium ?? false;
+  if (!isPremium) {
+    const { count } = await supabase.from('propostas').select('id', { count: 'exact', head: true }).eq('user_id', session.user.id);
+    if ((count ?? 0) >= 3) {
+      return NextResponse.json({ error: 'Limite gratuito atingido. Faça upgrade para continuar.' }, { status: 403 });
+    }
+  }
+
   try {
     const { descricao, idioma = 'português', setor = '' } = await request.json();
 

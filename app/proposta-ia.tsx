@@ -64,6 +64,7 @@ export default function PropostaIA({ user }: PropostaIAProps) {
   const [isPremium, setIsPremium] = useState(false);
   const [loadingCheckout, setLoadingCheckout] = useState(false);
   const [upgradeSuccess, setUpgradeSuccess] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'annual'>('annual');
 
   const supabase = useMemo(() => createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -101,7 +102,11 @@ export default function PropostaIA({ user }: PropostaIAProps) {
   const handleUpgrade = async () => {
     setLoadingCheckout(true);
     try {
-      const res = await fetch('/api/stripe/checkout', { method: 'POST' });
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: selectedPlan }),
+      });
       const { url } = await res.json();
       if (url) window.location.href = url;
     } finally {
@@ -482,7 +487,7 @@ export default function PropostaIA({ user }: PropostaIAProps) {
               {[
                 'Propostas ilimitadas',
                 'PDFs sem marca de água',
-                'Acesso a todos os idiomas',
+                'Histórico completo de propostas',
               ].map((b, i) => (
                 <div key={i} className="flex items-center gap-2.5">
                   <div className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0"
@@ -494,12 +499,33 @@ export default function PropostaIA({ user }: PropostaIAProps) {
               ))}
             </div>
 
+            {/* Seletor de plano */}
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              {[
+                { id: 'monthly' as const, price: '€12', period: '/mês', note: 'Renovação mensal' },
+                { id: 'annual' as const, price: '€99', period: '/ano', note: '€8,25/mês · poupas €45', badge: 'Melhor valor' },
+              ].map(plan => (
+                <button key={plan.id} onClick={() => setSelectedPlan(plan.id)}
+                  className="relative pt-5 pb-3.5 px-3.5 rounded-xl text-left transition-all"
+                  style={{ border: `2px solid ${selectedPlan === plan.id ? C.amber : C.border}`, background: selectedPlan === plan.id ? C.amberDim : C.surface }}>
+                  {plan.badge && (
+                    <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 text-[9px] font-black px-2 py-0.5 rounded-full whitespace-nowrap"
+                      style={{ background: C.amber, color: C.bg }}>{plan.badge}</span>
+                  )}
+                  <p className="font-black text-base leading-none mb-1" style={{ color: C.text }}>
+                    {plan.price}<span className="text-xs font-semibold" style={{ color: C.textMuted }}>{plan.period}</span>
+                  </p>
+                  <p className="text-[10px] leading-snug" style={{ color: C.textFaint }}>{plan.note}</p>
+                </button>
+              ))}
+            </div>
+
             {/* CTA */}
             <button onClick={handleUpgrade} disabled={loadingCheckout}
               className="w-full py-3.5 rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-all mb-5"
               style={{ background: C.amber, color: C.bg, opacity: loadingCheckout ? 0.7 : 1, cursor: loadingCheckout ? 'not-allowed' : 'pointer' }}>
               {loadingCheckout && <Loader2 className="animate-spin w-4 h-4" />}
-              Começar Plano Pro — €12/mês
+              {selectedPlan === 'annual' ? 'Começar Plano Pro — €99/ano' : 'Começar Plano Pro — €12/mês'}
             </button>
 
             <button onClick={() => { setShowUpgradeModal(false); setAbaAtiva('historico'); }}

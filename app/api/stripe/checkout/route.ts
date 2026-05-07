@@ -9,12 +9,18 @@ export async function POST(request: NextRequest) {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
 
+  const body = await request.json().catch(() => ({}));
+  const plan = body.plan === 'annual' ? 'annual' : 'monthly';
+  const priceId = plan === 'annual'
+    ? (process.env.STRIPE_PRICE_ID_ANNUAL || process.env.STRIPE_PRICE_ID!)
+    : process.env.STRIPE_PRICE_ID!;
+
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
   const checkoutSession = await stripe.checkout.sessions.create({
     mode: 'subscription',
     customer_email: session.user.email,
-    line_items: [{ price: process.env.STRIPE_PRICE_ID!, quantity: 1 }],
+    line_items: [{ price: priceId, quantity: 1 }],
     success_url: `${baseUrl}/dashboard?upgrade=success`,
     cancel_url: `${baseUrl}/dashboard`,
     metadata: { user_id: session.user.id },
