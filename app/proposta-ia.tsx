@@ -462,22 +462,24 @@ export default function PropostaIA({ user }: PropostaIAProps) {
       {showUpgradeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6"
           style={{ background: 'rgba(12,10,9,0.97)', backdropFilter: 'blur(16px)' }}>
-          <div className="w-full max-w-sm text-center">
+          <div className="w-full max-w-sm text-center overflow-y-auto max-h-[90vh] py-2">
             <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6"
               style={{ background: 'rgba(245,158,11,0.08)', border: `1px solid rgba(245,158,11,0.2)` }}>
               <Lock className="w-7 h-7" style={{ color: C.amber }} />
             </div>
-            <h2 className="text-3xl font-black mb-2" style={{ color: C.text }}>Limite atingido.</h2>
-            <p className="text-sm mb-6" style={{ color: C.textMuted }}>Utilizou as suas {FREE_LIMIT} propostas gratuitas.</p>
+            <h2 className="text-3xl font-black mb-2" style={{ color: C.text }}>{atLimit ? 'Limite atingido.' : 'Seshat Pro'}</h2>
+            <p className="text-sm mb-6" style={{ color: C.textMuted }}>
+              {atLimit ? `Utilizou as suas ${FREE_LIMIT} propostas gratuitas.` : 'Propostas ilimitadas, PDFs sem marca de água.'}
+            </p>
 
             {/* Barra de progresso */}
             <div className="rounded-xl p-4 mb-6" style={{ background: C.surface, border: `1px solid ${C.border}` }}>
               <div className="flex justify-between items-center mb-2">
                 <span className="text-xs font-semibold" style={{ color: C.textMuted }}>Plano Gratuito</span>
-                <span className="text-xs font-black" style={{ color: '#F87171' }}>{FREE_LIMIT} / {FREE_LIMIT}</span>
+                <span className="text-xs font-black" style={{ color: atLimit ? '#F87171' : C.amber }}>{usedCount} / {FREE_LIMIT}</span>
               </div>
               <div className="h-1.5 rounded-full w-full overflow-hidden" style={{ background: C.border }}>
-                <div className="h-full rounded-full" style={{ width: '100%', background: '#F87171' }} />
+                <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(100, (usedCount / FREE_LIMIT) * 100)}%`, background: atLimit ? '#F87171' : C.amber }} />
               </div>
             </div>
 
@@ -528,12 +530,12 @@ export default function PropostaIA({ user }: PropostaIAProps) {
               {selectedPlan === 'annual' ? 'Começar Plano Pro — €99/ano' : 'Começar Plano Pro — €12/mês'}
             </button>
 
-            <button onClick={() => { setShowUpgradeModal(false); setAbaAtiva('historico'); }}
+            <button onClick={() => { setShowUpgradeModal(false); if (atLimit) setAbaAtiva('historico'); }}
               className="text-sm font-semibold transition-all"
               style={{ color: C.textFaint }}
               onMouseEnter={e => ((e.currentTarget as HTMLElement).style.color = C.textMuted)}
               onMouseLeave={e => ((e.currentTarget as HTMLElement).style.color = C.textFaint)}>
-              Ver arquivo →
+              {atLimit ? 'Ver arquivo →' : 'Talvez mais tarde'}
             </button>
           </div>
         </div>
@@ -551,14 +553,21 @@ export default function PropostaIA({ user }: PropostaIAProps) {
         </div>
         <div className="flex items-center gap-4">
           {!isPremium && (
-            <div className="hidden sm:flex items-center gap-2">
-              <div className="h-1 w-20 rounded-full overflow-hidden" style={{ background: C.border }}>
-                <div className="h-full rounded-full transition-all"
-                  style={{ width: `${Math.min(100, (usedCount / FREE_LIMIT) * 100)}%`, background: atLimit ? '#F87171' : C.amber }} />
+            <div className="hidden sm:flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <div className="h-1 w-20 rounded-full overflow-hidden" style={{ background: C.border }}>
+                  <div className="h-full rounded-full transition-all"
+                    style={{ width: `${Math.min(100, (usedCount / FREE_LIMIT) * 100)}%`, background: atLimit ? '#F87171' : C.amber }} />
+                </div>
+                <span className="text-xs font-semibold" style={{ color: atLimit ? '#F87171' : C.textFaint }}>
+                  {usedCount}/{FREE_LIMIT}
+                </span>
               </div>
-              <span className="text-xs font-semibold" style={{ color: atLimit ? '#F87171' : C.textFaint }}>
-                {usedCount}/{FREE_LIMIT}
-              </span>
+              <button onClick={() => setShowUpgradeModal(true)}
+                className="flex items-center gap-1 text-xs font-black px-3 py-1.5 rounded-lg transition-all"
+                style={{ color: C.amber, border: `1px solid rgba(245,158,11,0.3)`, background: 'rgba(245,158,11,0.08)' }}>
+                Upgrade Pro →
+              </button>
             </div>
           )}
           {isPremium && (
