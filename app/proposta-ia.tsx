@@ -65,6 +65,7 @@ export default function PropostaIA({ user }: PropostaIAProps) {
   const [loadingCheckout, setLoadingCheckout] = useState(false);
   const [upgradeSuccess, setUpgradeSuccess] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'annual'>('annual');
+  const [checkoutError, setCheckoutError] = useState('');
 
   const supabase = useMemo(() => createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -101,14 +102,21 @@ export default function PropostaIA({ user }: PropostaIAProps) {
 
   const handleUpgrade = async () => {
     setLoadingCheckout(true);
+    setCheckoutError('');
     try {
       const res = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ plan: selectedPlan }),
       });
-      const { url } = await res.json();
-      if (url) window.location.href = url;
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setCheckoutError(data.error || 'Erro ao iniciar o pagamento. Tente novamente.');
+      }
+    } catch {
+      setCheckoutError('Erro de ligação. Tente novamente.');
     } finally {
       setLoadingCheckout(false);
     }
@@ -172,7 +180,7 @@ export default function PropostaIA({ user }: PropostaIAProps) {
 
   // ─── PDF ────────────────────────────────────────────────────────────────────
 
-  const downloadPDF = (propostaTexto: string, nomeClientePDF: string, descricaoTexto: string = descricao) => {
+  const downloadPDF = (propostaTexto: string, nomeClientePDF: string, _descricaoTexto: string = descricao) => {
     const doc = new jsPDF('p', 'mm', 'a4');
     const W = 210, H = 297;
     const hoje = new Date().toLocaleDateString('pt-PT');
@@ -521,6 +529,10 @@ export default function PropostaIA({ user }: PropostaIAProps) {
                 </button>
               ))}
             </div>
+
+            {checkoutError && (
+              <p className="text-xs text-red-400 mb-3 px-1">{checkoutError}</p>
+            )}
 
             {/* CTA */}
             <button onClick={handleUpgrade} disabled={loadingCheckout}

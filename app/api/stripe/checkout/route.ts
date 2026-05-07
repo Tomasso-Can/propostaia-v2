@@ -17,15 +17,20 @@ export async function POST(request: NextRequest) {
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
-  const checkoutSession = await stripe.checkout.sessions.create({
-    mode: 'subscription',
-    customer_email: session.user.email,
-    line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${baseUrl}/dashboard?upgrade=success`,
-    cancel_url: `${baseUrl}/dashboard`,
-    metadata: { user_id: session.user.id },
-    subscription_data: { metadata: { user_id: session.user.id } },
-  });
+  try {
+    const checkoutSession = await stripe.checkout.sessions.create({
+      mode: 'subscription',
+      customer_email: session.user.email,
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: `${baseUrl}/dashboard?upgrade=success`,
+      cancel_url: `${baseUrl}/dashboard`,
+      metadata: { user_id: session.user.id },
+      subscription_data: { metadata: { user_id: session.user.id } },
+    });
 
-  return NextResponse.json({ url: checkoutSession.url });
+    return NextResponse.json({ url: checkoutSession.url });
+  } catch (err: any) {
+    console.error('Stripe checkout error:', err);
+    return NextResponse.json({ error: err.message || 'Erro ao criar sessão de pagamento.' }, { status: 500 });
+  }
 }
