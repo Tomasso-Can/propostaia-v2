@@ -1,24 +1,45 @@
-name: Supabase Keep-Alive Ping
+name: Supabase Keep-Alive
 
 on:
   schedule:
-    - cron: '0 10 */2 * *'  # every 2 days at 10:00 UTC
-  workflow_dispatch:         # allow manual trigger
+    - cron: '0 8 1,6,11,16,21,26 * *'  # days 1,6,11,16,21,26 — never more than 5 days apart
+  workflow_dispatch:                      # allow manual trigger to test
 
 jobs:
-  ping:
+  keepalive:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping Supabase
+      - name: Query Supabase database
+        env:
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
         run: |
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-            "${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}/rest/v1/profiles?select=id&limit=1" \
-            -H "apikey: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" \
-            -H "Authorization: Bearer ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}")
-          echo "Response status: $STATUS"
-          if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 500 ]; then
-            echo "Ping successful"
+          echo "Timestamp: $(date -u)"
+          echo "Querying Supabase REST API (executes real SQL via PostgREST)..."
+
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            "${SUPABASE_URL}/rest/v1/profiles?select=id&limit=1" \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
+            -H "Accept: application/json")
+
+          HTTP_STATUS=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | head -n-1)
+
+          echo "HTTP status: ${HTTP_STATUS}"
+          echo "Response body: ${BODY}"
+
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "ERROR: GitHub secrets NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY are not set."
+            exit 1
+          fi
+
+          if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 300 ]; then
+            echo "SUCCESS: Database query completed."
+          elif [ "$HTTP_STATUS" -eq 401 ] || [ "$HTTP_STATUS" -eq 403 ]; then
+            echo "AUTH ERROR: Check that the anon key is correct."
+            exit 1
           else
-            echo "Ping failed with status $STATUS"
+            echo "FAILED with HTTP status ${HTTP_STATUS}"
             exit 1
           fi
