@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { FileText, ArrowRight, Loader2, PenLine, Wand2, Send, Layers, Archive } from 'lucide-react';
+import { type Lang, translations } from './lib/i18n';
 
 const AMBER = '#F59E0B';
 const BG = '#0C0A09';
@@ -21,6 +22,9 @@ export default function LandingPage() {
   const [loading, setLoading] = useState(false);
   const [authMessage, setAuthMessage] = useState('');
   const [authIsError, setAuthIsError] = useState(false);
+  const [lang, setLang] = useState<Lang>('pt');
+
+  const t = translations[lang];
 
   // Demo animation state
   const [demoAutor, setDemoAutor] = useState('');
@@ -119,7 +123,7 @@ export default function LandingPage() {
         const { error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
         setAuthIsError(false);
-        setAuthMessage('Confirme o seu email para ativar a conta.');
+        setAuthMessage(t.auth.confirmEmail);
       }
     } catch (err: any) {
       setAuthIsError(true); setAuthMessage(err.message);
@@ -169,7 +173,7 @@ export default function LandingPage() {
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-black mb-5" style={{ background: AMBER, color: BG }}>
                 <FileText className="w-4 h-4" /> Seshat
               </div>
-              <h2 className="text-3xl font-black text-stone-100">{authMode === 'login' ? 'Bem-vindo de volta.' : 'Crie a sua conta.'}</h2>
+              <h2 className="text-3xl font-black text-stone-100">{authMode === 'login' ? t.auth.welcomeBack : t.auth.createAccount}</h2>
             </div>
             <form onSubmit={handleAuth} className="space-y-3">
               {[
@@ -186,11 +190,14 @@ export default function LandingPage() {
               ))}
               {authMessage && <p className={`text-sm text-center px-2 ${authIsError ? 'text-red-400' : 'text-amber-400'}`}>{authMessage}</p>}
               <button type="submit" className="w-full py-4 rounded-2xl font-black text-sm transition-all flex items-center justify-center" style={{ background: AMBER, color: BG }}>
-                {loading ? <Loader2 className="animate-spin w-5 h-5" /> : authMode === 'login' ? 'Entrar' : 'Criar Conta'}
+                {loading ? <Loader2 className="animate-spin w-5 h-5" /> : authMode === 'login' ? t.auth.login : t.auth.signup}
               </button>
               <p onClick={() => { setAuthMode(m => m === 'login' ? 'signup' : 'login'); setAuthMessage(''); }} className="text-center text-xs text-stone-500 hover:text-stone-300 cursor-pointer transition-all pt-1">
-                {authMode === 'login' ? 'Ainda não tem conta? Registar' : 'Já tem conta? Entrar'}
+                {authMode === 'login' ? t.auth.noAccount : t.auth.hasAccount}
               </p>
+              {t.auth.langNote && (
+                <p className="text-center text-xs pt-2" style={{ color: '#5A5048' }}>{t.auth.langNote}</p>
+              )}
             </form>
           </div>
         </div>
@@ -205,34 +212,36 @@ export default function LandingPage() {
             <img src="/tagline.svg" alt="Proposals · Made Simple" className="h-2.5 w-auto" />
           </div>
         </div>
-        <button onClick={() => openAuth('login')} className="px-5 py-2 rounded-full text-sm font-semibold text-stone-400 hover:text-stone-100 transition-all" style={{ border: '1px solid #292524' }}>
-          Entrar
-        </button>
+        <div className="flex items-center gap-3">
+          <button onClick={() => openAuth('login')} className="px-5 py-2 rounded-full text-sm font-semibold text-stone-400 hover:text-stone-100 transition-all" style={{ border: '1px solid #292524' }}>
+            {t.nav.login}
+          </button>
+        </div>
       </nav>
 
       {/* HERO */}
       <section className="max-w-6xl mx-auto px-6 pt-14 pb-16 text-center">
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold mb-6" style={{ background: 'rgba(245,158,11,0.1)', color: AMBER, border: '1px solid rgba(245,158,11,0.2)' }}>
-          <Wand2 className="w-3.5 h-3.5" /> Para quem valoriza a primeira impressão
+          <Wand2 className="w-3.5 h-3.5" /> {t.hero.badge}
         </div>
         <h1 className="text-4xl md:text-7xl lg:text-[82px] font-black tracking-tighter leading-[0.88] mb-5 text-stone-100">
-          Proposta profissional<br /><span style={{ color: AMBER }}>em 60 segundos.</span>
+          {t.hero.h1a}<br /><span style={{ color: AMBER }}>{t.hero.h1b}</span>
         </h1>
         <p className="text-base text-stone-400 max-w-lg mx-auto mb-10 leading-relaxed">
-          Propostas comerciais elegantes e persuasivas — geradas em segundos a partir do seu briefing.
+          {t.hero.sub}
         </p>
         <div className="flex items-center justify-center gap-4 flex-wrap mb-7">
           <button onClick={() => openAuth('signup')} className="px-8 py-4 rounded-2xl font-black text-base flex items-center gap-2 transition-all" style={{ background: AMBER, color: BG, boxShadow: '0 8px 32px rgba(245,158,11,0.32)' }}>
-            Começar grátis <ArrowRight className="w-5 h-5" />
+            {t.hero.cta} <ArrowRight className="w-5 h-5" />
           </button>
-          <button onClick={() => openAuth('login')} className="text-stone-500 hover:text-stone-300 px-5 py-4 font-semibold text-sm transition-all">Já tenho conta →</button>
+          <button onClick={() => openAuth('login')} className="text-stone-500 hover:text-stone-300 px-5 py-4 font-semibold text-sm transition-all">{t.hero.loginLink}</button>
         </div>
         <div className="flex items-center justify-center gap-x-3 gap-y-1 text-xs flex-wrap px-4" style={{ color: '#3A3530' }}>
-          <span>Grátis para começar</span>
+          <span>{t.hero.free}</span>
           <span>·</span>
-          <span>3 propostas incluídas</span>
+          <span>{t.hero.proposals}</span>
           <span>·</span>
-          <span>Sem cartão de crédito</span>
+          <span>{t.hero.noCard}</span>
         </div>
       </section>
 
@@ -243,11 +252,11 @@ export default function LandingPage() {
 
             {/* Painel esquerdo — Form animado */}
             <div className="col-span-2 p-7 hidden md:flex flex-col gap-4" style={{ borderRight: '1px solid #1C1917' }}>
-              <p className="text-[9px] font-bold text-stone-600 uppercase tracking-widest">Briefing</p>
+              <p className="text-[9px] font-bold text-stone-600 uppercase tracking-widest">{t.demo.briefing}</p>
 
               {/* Campo Autor */}
               <div>
-                <p className="text-[8px] text-stone-700 uppercase tracking-widest mb-1.5">Autor</p>
+                <p className="text-[8px] text-stone-700 uppercase tracking-widest mb-1.5">{t.demo.autor}</p>
                 <div className="rounded-lg px-3 py-2 text-xs min-h-[30px] transition-all duration-300"
                   style={{ background: '#1C1917', border: `1px solid ${demoPhase === 'typing_autor' ? AMBER : '#292524'}`, color: '#A8A29E' }}>
                   {demoAutor}{demoPhase === 'typing_autor' && <DemoCursor />}
@@ -256,7 +265,7 @@ export default function LandingPage() {
 
               {/* Campo Cliente */}
               <div>
-                <p className="text-[8px] text-stone-700 uppercase tracking-widest mb-1.5">Cliente</p>
+                <p className="text-[8px] text-stone-700 uppercase tracking-widest mb-1.5">{t.demo.cliente}</p>
                 <div className="rounded-lg px-3 py-2 text-xs min-h-[30px] transition-all duration-300"
                   style={{ background: '#1C1917', border: `1px solid ${demoPhase === 'typing_cliente' ? AMBER : '#292524'}`, color: '#A8A29E' }}>
                   {demoCliente}{demoPhase === 'typing_cliente' && <DemoCursor />}
@@ -265,7 +274,7 @@ export default function LandingPage() {
 
               {/* Campo Briefing */}
               <div className="flex-1">
-                <p className="text-[8px] text-stone-700 uppercase tracking-widest mb-1.5">Briefing</p>
+                <p className="text-[8px] text-stone-700 uppercase tracking-widest mb-1.5">{t.demo.briefing}</p>
                 <div className="rounded-lg px-3 py-2 text-xs h-full max-h-28 transition-all duration-300 leading-relaxed"
                   style={{ background: '#1C1917', border: `1px solid ${demoPhase === 'typing_desc' ? AMBER : '#292524'}`, color: '#A8A29E' }}>
                   {demoDesc}{demoPhase === 'typing_desc' && <DemoCursor />}
@@ -281,7 +290,7 @@ export default function LandingPage() {
                   transform: demoPhase === 'btn_hover' ? 'scale(0.97)' : 'scale(1)',
                 }}
               >
-                {demoPhase === 'loading' || demoPhase === 'pdf' ? '✓ PROPOSTA GERADA' : 'GERAR PROPOSTA'}
+                {demoPhase === 'loading' || demoPhase === 'pdf' ? t.demo.generated : t.demo.generate}
               </div>
             </div>
 
@@ -292,7 +301,7 @@ export default function LandingPage() {
                   <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: '#1C1917', border: '1px solid #292524' }}>
                     <FileText className="w-6 h-6" style={{ color: '#292524' }} />
                   </div>
-                  <p className="text-xs text-stone-700">Preview da proposta</p>
+                  <p className="text-xs text-stone-700">{t.demo.preview}</p>
                 </div>
               )}
 
@@ -303,7 +312,7 @@ export default function LandingPage() {
                       <div key={i} className="w-2 h-2 rounded-full" style={{ background: AMBER, animation: `dot-bounce 1.2s ease-in-out ${i * 0.18}s infinite` }} />
                     ))}
                   </div>
-                  <p className="text-xs font-semibold text-stone-500">Seshat está a escrever...</p>
+                  <p className="text-xs font-semibold text-stone-500">{t.demo.writing}</p>
                 </div>
               )}
 
@@ -367,22 +376,22 @@ export default function LandingPage() {
       {/* COMO FUNCIONA */}
       <section className="max-w-6xl mx-auto px-6 pb-28">
         <div className="text-center mb-14">
-          <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: AMBER }}>Como funciona</p>
-          <h2 className="text-4xl md:text-5xl font-black tracking-tighter text-stone-100">Simples como deve ser.</h2>
+          <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: AMBER }}>{t.howItWorks.badge}</p>
+          <h2 className="text-4xl md:text-5xl font-black tracking-tighter text-stone-100">{t.howItWorks.title}</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {[
-            { icon: <PenLine className="w-5 h-5" />, num: '01', title: 'Descreva o projeto', desc: 'Escreva o briefing em texto livre: o que inclui o trabalho, prazo, preço e contexto. Sem formulários complexos.' },
-            { icon: <Wand2 className="w-5 h-5" />, num: '02', title: 'A proposta é redigida', desc: 'Em segundos, a Seshat produz uma proposta completa com 8 secções estruturadas, linguagem natural e tom profissional.' },
-            { icon: <Send className="w-5 h-5" />, num: '03', title: 'Exporte e envie', desc: 'Edite se quiser, escolha o tema visual e exporte o PDF. Pronto a enviar ao cliente.' },
-          ].map((step, i) => (
+          {([
+            { icon: <PenLine className="w-5 h-5" />, num: '01' },
+            { icon: <Wand2 className="w-5 h-5" />, num: '02' },
+            { icon: <Send className="w-5 h-5" />, num: '03' },
+          ] as const).map((step, i) => (
             <div key={i} className="rounded-3xl p-7 transition-all" style={{ background: '#161412', border: '1px solid #292524' }}>
               <div className="flex items-start justify-between mb-6">
                 <div className="p-2.5 rounded-xl" style={{ background: 'rgba(245,158,11,0.12)', color: AMBER }}>{step.icon}</div>
                 <span className="text-5xl font-black" style={{ color: '#292524' }}>{step.num}</span>
               </div>
-              <h3 className="text-base font-black mb-2 text-stone-100">{step.title}</h3>
-              <p className="text-sm leading-relaxed text-stone-500">{step.desc}</p>
+              <h3 className="text-base font-black mb-2 text-stone-100">{t.howItWorks.steps[i].title}</h3>
+              <p className="text-sm leading-relaxed text-stone-500">{t.howItWorks.steps[i].desc}</p>
             </div>
           ))}
         </div>
@@ -391,9 +400,9 @@ export default function LandingPage() {
       {/* TEMAS DE PDF */}
       <section className="max-w-6xl mx-auto px-6 pb-28">
         <div className="text-center mb-14">
-          <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: AMBER }}>Design</p>
-          <h2 className="text-4xl md:text-5xl font-black tracking-tighter text-stone-100">Dois temas. Uma impressão.</h2>
-          <p className="text-stone-500 mt-3 text-base">Escolha o estilo que representa melhor a sua marca.</p>
+          <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: AMBER }}>{t.themes.badge}</p>
+          <h2 className="text-4xl md:text-5xl font-black tracking-tighter text-stone-100">{t.themes.title}</h2>
+          <p className="text-stone-500 mt-3 text-base">{t.themes.sub}</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="rounded-3xl p-7" style={{ background: '#161412', border: '1px solid #292524' }}>
@@ -408,8 +417,8 @@ export default function LandingPage() {
                 </div>
               </div>
             </div>
-            <h3 className="text-base font-black mb-1.5 text-stone-100">Branco Minimalista</h3>
-            <p className="text-stone-500 text-sm leading-relaxed">Fundo branco, tipografia hierárquica e acentos dourados. Elegante, atemporal e pronto para impressão.</p>
+            <h3 className="text-base font-black mb-1.5 text-stone-100">{t.themes.light.title}</h3>
+            <p className="text-stone-500 text-sm leading-relaxed">{t.themes.light.desc}</p>
           </div>
           <div className="rounded-3xl p-7" style={{ background: '#161412', border: '1px solid #292524' }}>
             <div className="rounded-2xl overflow-hidden mb-6 shadow-xl" style={{ height: '200px' }}>
@@ -426,8 +435,8 @@ export default function LandingPage() {
                 </div>
               </div>
             </div>
-            <h3 className="text-base font-black mb-1.5 text-stone-100">Preto Premium</h3>
-            <p className="text-stone-500 text-sm leading-relaxed">Fundo escuro, contraste máximo e acentos âmbar. Para propostas que impressionam antes de serem lidas.</p>
+            <h3 className="text-base font-black mb-1.5 text-stone-100">{t.themes.dark.title}</h3>
+            <p className="text-stone-500 text-sm leading-relaxed">{t.themes.dark.desc}</p>
           </div>
         </div>
       </section>
@@ -435,21 +444,21 @@ export default function LandingPage() {
       {/* FEATURES */}
       <section className="max-w-6xl mx-auto px-6 pb-28">
         <div className="text-center mb-14">
-          <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: AMBER }}>Porquê a Seshat</p>
-          <h2 className="text-4xl md:text-5xl font-black tracking-tighter text-stone-100">Tudo o que precisa.</h2>
+          <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: AMBER }}>{t.features.badge}</p>
+          <h2 className="text-4xl md:text-5xl font-black tracking-tighter text-stone-100">{t.features.title}</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {[
-            { icon: <PenLine className="w-4 h-4" />, title: 'Linguagem que convence', desc: 'Escrita fluída e natural, adaptada ao mercado lusófono. Profissional, persuasiva e pronta a enviar.' },
-            { icon: <FileText className="w-4 h-4" />, title: 'Estrutura que converte', desc: 'Oito secções que cobrem tudo o que o cliente precisa de ver — do âmbito ao próximo passo.' },
-            { icon: <Layers className="w-4 h-4" />, title: 'Design que impressiona', desc: 'Branco Minimalista ou Preto Premium. A proposta chega ao cliente com apresentação profissional.' },
-            { icon: <Archive className="w-4 h-4" />, title: 'Tudo guardado', desc: 'Cada proposta fica arquivada na sua conta, pronta a reexportar a qualquer momento.' },
-          ].map((f, i) => (
+          {([
+            { icon: <PenLine className="w-4 h-4" /> },
+            { icon: <FileText className="w-4 h-4" /> },
+            { icon: <Layers className="w-4 h-4" /> },
+            { icon: <Archive className="w-4 h-4" /> },
+          ] as const).map((f, i) => (
             <div key={i} className="rounded-2xl p-7 flex gap-5" style={{ background: '#111010', border: '1px solid #1E1C1A' }}>
               <div className="flex-shrink-0 mt-0.5 p-2 rounded-lg" style={{ background: 'rgba(245,158,11,0.1)', color: AMBER }}>{f.icon}</div>
               <div>
-                <h3 className="text-sm font-black mb-1.5 text-stone-100">{f.title}</h3>
-                <p className="text-stone-500 text-sm leading-relaxed">{f.desc}</p>
+                <h3 className="text-sm font-black mb-1.5 text-stone-100">{t.features.items[i].title}</h3>
+                <p className="text-stone-500 text-sm leading-relaxed">{t.features.items[i].desc}</p>
               </div>
             </div>
           ))}
@@ -459,19 +468,28 @@ export default function LandingPage() {
       {/* CTA FINAL */}
       <section className="max-w-6xl mx-auto px-6 pb-24">
         <div className="rounded-3xl p-14 text-center" style={{ background: AMBER }}>
-          <h2 className="text-4xl md:text-5xl font-black tracking-tighter mb-3" style={{ color: BG }}>Pronto para começar?</h2>
-          <p className="text-base mb-8" style={{ color: 'rgba(12,10,9,0.55)' }}>Crie a sua primeira proposta. É grátis.</p>
+          <h2 className="text-4xl md:text-5xl font-black tracking-tighter mb-3" style={{ color: BG }}>{t.cta.title}</h2>
+          <p className="text-base mb-8" style={{ color: 'rgba(12,10,9,0.55)' }}>{t.cta.sub}</p>
           <button onClick={() => openAuth('signup')} className="px-10 py-4 rounded-2xl font-black text-base inline-flex items-center gap-2 transition-all" style={{ background: BG, color: '#F5F0EC' }}>
-            Criar conta <ArrowRight className="w-5 h-5" />
+            {t.cta.btn} <ArrowRight className="w-5 h-5" />
           </button>
         </div>
       </section>
+
+      {/* LANGUAGE TOGGLE */}
+      <button
+        onClick={() => setLang(lang === 'pt' ? 'en' : 'pt')}
+        className="fixed rounded-full px-4 py-2 text-sm font-black transition-all hover:scale-105"
+        style={{ bottom: '1rem', right: '1rem', zIndex: 9999, background: AMBER, color: BG }}
+      >
+        {lang === 'pt' ? 'EN' : 'PT'}
+      </button>
 
       {/* FOOTER */}
       <footer className="py-8 text-center" style={{ borderTop: '1px solid #1C1917' }}>
         <p className="text-sm flex items-center justify-center gap-2 text-stone-600">
           <FileText className="w-3.5 h-3.5" style={{ color: AMBER }} />
-          <span><span className="font-black text-stone-400">Seshat</span> · Propostas que fecham negócios.</span>
+          <span><span className="font-black text-stone-400">Seshat</span> · {t.footer}</span>
         </p>
       </footer>
     </div>
