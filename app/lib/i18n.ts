@@ -1,4 +1,24 @@
+import { useEffect, useState } from 'react';
+
 export type Lang = 'pt' | 'en';
+
+const LANG_STORAGE_KEY = 'seshat-lang';
+
+export function useLang(): [Lang, (lang: Lang) => void] {
+  const [lang, setLangState] = useState<Lang>('pt');
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem(LANG_STORAGE_KEY);
+    if (stored === 'pt' || stored === 'en') setLangState(stored);
+  }, []);
+
+  const setLang = (next: Lang) => {
+    setLangState(next);
+    window.localStorage.setItem(LANG_STORAGE_KEY, next);
+  };
+
+  return [lang, setLang];
+}
 
 export const translations = {
   pt: {
@@ -32,6 +52,23 @@ export const translations = {
       writing: 'Seshat está a escrever...',
       generated: '✓ PROPOSTA GERADA',
       generate: 'GERAR PROPOSTA',
+      demoAutor: 'Atelier Forma',
+      demoCliente: 'João Rodrigues',
+      demoDesc: '20 visualizações 3D, moradia nova. Projeto aprovado. Prazo 30 dias. Preço 5.500€.',
+      pdfTitle: 'PROPOSTA',
+      pdfSubtitle: 'COMERCIAL',
+      preparedFor: 'Preparado para',
+      aboutProject: 'Sobre o Projeto',
+      sections: [
+        '1. Introdução',
+        '2. Compreensão do Projeto',
+        '3. Âmbito dos Trabalhos',
+        '4. Processo de Trabalho',
+        '5. Investimento',
+        '6. Prazo de Entrega',
+        '7. Termos e Garantias',
+        '8. Próximos Passos',
+      ],
     },
     howItWorks: {
       badge: 'Como funciona',
@@ -65,6 +102,100 @@ export const translations = {
       btn: 'Criar conta',
     },
     footer: 'Propostas que fecham negócios.',
+    dashboard: {
+      upgradeBanner: 'Plano Pro ativado. Bem-vindo ao Seshat Pro!',
+      header: {
+        upgrade: 'Upgrade Pro →',
+        pro: 'Pro ✓',
+        logout: 'Sair',
+      },
+      upgradeModal: {
+        limitTitle: 'Limite atingido.',
+        title: 'Seshat Pro',
+        limitDesc: (limit: number) => `Utilizou as suas ${limit} propostas gratuitas.`,
+        desc: 'Propostas ilimitadas, PDFs sem marca de água.',
+        freePlan: 'Plano Gratuito',
+        proIncludes: 'Plano Pro inclui',
+        benefits: [
+          'Propostas ilimitadas',
+          'PDFs sem marca de água',
+          'Histórico completo de propostas',
+        ],
+        monthly: { price: '€12', period: '/mês', note: 'Renovação mensal', badge: '' as string },
+        annual: { price: '€99', period: '/ano', note: '€8,25/mês · poupas €45', badge: 'Melhor valor' },
+        ctaAnnual: 'Começar Plano Pro — €99/ano',
+        ctaMonthly: 'Começar Plano Pro — €12/mês',
+        viewArchive: 'Ver arquivo →',
+        maybeLater: 'Talvez mais tarde',
+      },
+      errors: {
+        checkout: 'Erro ao iniciar o pagamento. Tente novamente.',
+        connection: 'Erro de ligação. Tente novamente.',
+      },
+      tabs: { new: 'Nova Proposta', archive: 'Arquivo' },
+      sectors: [
+        { value: '', label: 'Setor (opcional)' },
+        { value: 'fotografia', label: 'Fotografia & Vídeo' },
+        { value: 'design', label: 'Design & Branding' },
+        { value: '3d', label: '3D & Visualização' },
+        { value: 'web', label: 'Desenvolvimento Web' },
+        { value: 'marketing', label: 'Marketing & Comunicação' },
+        { value: 'arquitetura', label: 'Arquitetura & Interiores' },
+        { value: 'construcao', label: 'Construção & Renovação' },
+        { value: 'consultoria', label: 'Consultoria' },
+        { value: 'conteudo', label: 'Produção de Conteúdo' },
+        { value: 'outro', label: 'Outro' },
+      ],
+      form: {
+        sectionTitle: 'Dados da proposta',
+        author: 'Autor *',
+        authorPh: 'O seu nome ou empresa',
+        client: 'Cliente *',
+        clientPh: 'Nome do cliente',
+        contact: 'Contacto',
+        contactPh: 'Email ou telefone',
+        city: 'Cidade',
+        cityPh: 'Lisboa, Portugal',
+        sector: 'Setor',
+        briefing: 'Briefing do Projeto *',
+        briefingPh: 'Descreva o projeto: o que inclui, prazo, preço, cliente, contexto...',
+      },
+      theme: {
+        title: 'Tema do PDF',
+        whiteLabel: 'Branco',
+        whiteSub: 'Minimalista',
+        blackLabel: 'Preto',
+        blackSub: 'Premium',
+      },
+      generate: {
+        button: 'Gerar Proposta',
+        limitButton: 'Limite atingido — Ver planos',
+        loading: 'Seshat está a escrever...',
+        remaining: (n: number) =>
+          `${n} proposta${n !== 1 ? 's' : ''} gratuita${n !== 1 ? 's' : ''} restante${n !== 1 ? 's' : ''}`,
+        watermarkNote: 'PDFs incluem marca de água discreta',
+      },
+      preview: {
+        title: 'Preview e edição',
+        exportPdf: 'Exportar PDF',
+        writingTitle: 'Seshat está a escrever...',
+        writingSub: 'Este processo pode demorar alguns segundos.',
+        emptyTitle: 'Preencha o formulário',
+        emptySub: 'e clique em "Gerar Proposta" para começar.',
+      },
+      archive: {
+        title: 'Arquivo',
+        newProposal: 'Nova Proposta',
+        empty: 'Ainda não tem propostas guardadas.',
+        edit: 'Editar',
+        pdf: 'PDF',
+      },
+      alerts: {
+        fillRequired: 'Preencha o nome do autor, cliente e briefing.',
+        confirmDelete: 'Eliminar esta proposta? Esta ação não pode ser revertida.',
+        successGenerated: 'Proposta gerada com sucesso!',
+      },
+    },
   },
   en: {
     nav: { login: 'Log in' },
@@ -76,7 +207,7 @@ export const translations = {
       signup: 'Create Account',
       noAccount: "Don't have an account? Sign up",
       hasAccount: 'Already have an account? Log in',
-      langNote: 'Proposal generation currently in Portuguese — English coming soon.',
+      langNote: '',
     },
     hero: {
       badge: 'For those who value first impressions',
@@ -97,6 +228,23 @@ export const translations = {
       writing: 'Seshat is writing...',
       generated: '✓ PROPOSAL GENERATED',
       generate: 'GENERATE PROPOSAL',
+      demoAutor: 'Forma Studio',
+      demoCliente: 'Michael Carter',
+      demoDesc: '20 3D renders for a new home build. Project approved. 30-day turnaround. $5,500.',
+      pdfTitle: 'PROPOSAL',
+      pdfSubtitle: 'COMMERCIAL',
+      preparedFor: 'Prepared for',
+      aboutProject: 'About the Project',
+      sections: [
+        '1. Introduction',
+        '2. Project Understanding',
+        '3. Scope of Work',
+        '4. Our Process',
+        '5. Investment',
+        '6. Timeline',
+        '7. Terms & Guarantees',
+        '8. Next Steps',
+      ],
     },
     howItWorks: {
       badge: 'How it works',
@@ -130,5 +278,98 @@ export const translations = {
       btn: 'Create account',
     },
     footer: 'Proposals that close deals.',
+    dashboard: {
+      upgradeBanner: 'Pro plan activated. Welcome to Seshat Pro!',
+      header: {
+        upgrade: 'Upgrade Pro →',
+        pro: 'Pro ✓',
+        logout: 'Log out',
+      },
+      upgradeModal: {
+        limitTitle: 'Limit reached.',
+        title: 'Seshat Pro',
+        limitDesc: (limit: number) => `You've used your ${limit} free proposals.`,
+        desc: 'Unlimited proposals, PDFs without a watermark.',
+        freePlan: 'Free Plan',
+        proIncludes: 'Pro plan includes',
+        benefits: [
+          'Unlimited proposals',
+          'PDFs without a watermark',
+          'Full proposal history',
+        ],
+        monthly: { price: '€12', period: '/mo', note: 'Billed monthly', badge: '' as string },
+        annual: { price: '€99', period: '/yr', note: '€8.25/mo · save €45', badge: 'Best value' },
+        ctaAnnual: 'Start Pro Plan — €99/yr',
+        ctaMonthly: 'Start Pro Plan — €12/mo',
+        viewArchive: 'View archive →',
+        maybeLater: 'Maybe later',
+      },
+      errors: {
+        checkout: 'Error starting checkout. Please try again.',
+        connection: 'Connection error. Please try again.',
+      },
+      tabs: { new: 'New Proposal', archive: 'Archive' },
+      sectors: [
+        { value: '', label: 'Sector (optional)' },
+        { value: 'fotografia', label: 'Photography & Video' },
+        { value: 'design', label: 'Design & Branding' },
+        { value: '3d', label: '3D & Visualization' },
+        { value: 'web', label: 'Web Development' },
+        { value: 'marketing', label: 'Marketing & Communications' },
+        { value: 'arquitetura', label: 'Architecture & Interiors' },
+        { value: 'construcao', label: 'Construction & Renovation' },
+        { value: 'consultoria', label: 'Consulting' },
+        { value: 'conteudo', label: 'Content Production' },
+        { value: 'outro', label: 'Other' },
+      ],
+      form: {
+        sectionTitle: 'Proposal details',
+        author: 'Author *',
+        authorPh: 'Your name or company',
+        client: 'Client *',
+        clientPh: "Client's name",
+        contact: 'Contact',
+        contactPh: 'Email or phone',
+        city: 'City',
+        cityPh: 'New York, USA',
+        sector: 'Sector',
+        briefing: 'Project Brief *',
+        briefingPh: 'Describe the project: what it includes, timeline, price, client, context...',
+      },
+      theme: {
+        title: 'PDF Theme',
+        whiteLabel: 'White',
+        whiteSub: 'Minimalist',
+        blackLabel: 'Black',
+        blackSub: 'Premium',
+      },
+      generate: {
+        button: 'Generate Proposal',
+        limitButton: 'Limit reached — View plans',
+        loading: 'Seshat is writing...',
+        remaining: (n: number) => `${n} free proposal${n !== 1 ? 's' : ''} remaining`,
+        watermarkNote: 'PDFs include a subtle watermark',
+      },
+      preview: {
+        title: 'Preview & edit',
+        exportPdf: 'Export PDF',
+        writingTitle: 'Seshat is writing...',
+        writingSub: 'This may take a few seconds.',
+        emptyTitle: 'Fill in the form',
+        emptySub: 'and click "Generate Proposal" to get started.',
+      },
+      archive: {
+        title: 'Archive',
+        newProposal: 'New Proposal',
+        empty: "You don't have any saved proposals yet.",
+        edit: 'Edit',
+        pdf: 'PDF',
+      },
+      alerts: {
+        fillRequired: 'Please fill in the author, client, and brief.',
+        confirmDelete: 'Delete this proposal? This action cannot be undone.',
+        successGenerated: 'Proposal generated successfully!',
+      },
+    },
   },
 } as const;

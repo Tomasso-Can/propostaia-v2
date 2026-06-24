@@ -59,40 +59,15 @@ Entregáveis típicos: textos revisados e aprovados, guia de tom de voz, calend�
 Adapta toda a terminologia ao contexto específico descrito no briefing. Tom: profissional, confiante e direto.`,
 };
 
-export async function POST(request: NextRequest) {
-  const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
-
-  // Enforce free limit server-side
-  const { data: profile } = await supabase.from('profiles').select('is_premium').eq('id', session.user.id).single();
-  const isPremium = profile?.is_premium ?? false;
-  if (!isPremium) {
-    const { count } = await supabase.from('propostas').select('id', { count: 'exact', head: true }).eq('user_id', session.user.id);
-    if ((count ?? 0) >= 3) {
-      return NextResponse.json({ error: 'Limite gratuito atingido. Faça upgrade para continuar.' }, { status: 403 });
-    }
-  }
-
-  try {
-    const { descricao, idioma = 'português', setor = '' } = await request.json();
-
-    if (!descricao || descricao.trim().length < 15) {
-      return NextResponse.json({ error: 'Por favor, descreva o projeto com mais detalhe.' }, { status: 400 });
-    }
-
-    const sectorContext = setor && sectorContexts[setor]
-      ? `${sectorContexts[setor]}\n\n`
-      : '';
-
-    const wordCount = descricao.trim().split(/\s+/).length;
-    const briefingGuidance = wordCount < 40
-      ? `O briefing é curto (${wordCount} palavras). Infere contexto plausível com base nos dados disponíveis e no setor. Para valores ou datas não mencionados: usa faixas realistas ou durações relativas — nunca inventes especificidades concretas.`
-      : `O briefing é detalhado. Usa todos os dados fornecidos para personalizar cada secção. Prioriza a informação real do briefing sobre valores ou prazos genéricos.`;
-
-    const systemMessage = `És um consultor comercial sénior especializado em ajudar criativos, agências e profissionais independentes a escrever propostas que fecham negócios. As tuas propostas são conhecidas por serem específicas, confiantes, persuasivas e humanas — nunca genéricas.
+const prompts = {
+  pt: {
+    briefingShort: (wordCount: number) =>
+      `O briefing é curto (${wordCount} palavras). Infere contexto plausível com base nos dados disponíveis e no setor. Para valores ou datas não mencionados: usa faixas realistas ou durações relativas — nunca inventes especificidades concretas.`,
+    briefingDetailed: `O briefing é detalhado. Usa todos os dados fornecidos para personalizar cada secção. Prioriza a informação real do briefing sobre valores ou prazos genéricos.`,
+    system: (sectorContext: string) => `És um consultor comercial sénior especializado em ajudar criativos, agências e profissionais independentes a escrever propostas que fecham negócios. As tuas propostas são conhecidas por serem específicas, confiantes, persuasivas e humanas — nunca genéricas.
 
 ${sectorContext}Regras absolutas:
+- Escreve TODA a proposta em português — títulos de secção, listas e corpo de texto.
 - Tom: confiante, profissional e humano. Direto sem ser frio.
 - Usa exclusivamente os detalhes do briefing — esta proposta deve parecer feita à medida, nunca um template.
 - Proibido absolutamente: "com grande entusiasmo", "estou entusiasmado", "é com prazer", "estimado cliente", "espero que vá ao encontro das suas expectativas", "não hesite em contactar", "entendo que", "compreendo que", "percebo que", "foi um prazer entender", "fico feliz em".
@@ -100,15 +75,14 @@ ${sectorContext}Regras absolutas:
 - Escreve SEMPRE na primeira pessoa do singular — a proposta é escrita pelo profissional, não sobre ele. Nunca uses "o profissional selecionado", "o fotógrafo em questão" ou qualquer referência na terceira pessoa ao autor da proposta.
 - Títulos no formato "1. Título" — sem asteriscos, sem #, sem traços separadores.
 - Termina após "8. Próximos Passos" — sem despedidas, sem "[Nome]" ou "[Cargo]".
-- Total: entre 650 e 850 palavras.`;
-
-    const userMessage = `Briefing do profissional:
+- Total: entre 650 e 850 palavras.`,
+    user: (descricao: string, briefingGuidance: string) => `Briefing do profissional:
 
 "${descricao}"
 
 ${briefingGuidance}
 
-Escreve a proposta em ${idioma} com esta estrutura exata:
+Escreve a proposta em português com esta estrutura exata:
 
 1. Introdução
 Dois parágrafos. Contextualiza a proposta de forma profissional e confiante. Demonstra conhecimento do contexto do cliente sem frases genéricas de abertura.
@@ -132,7 +106,106 @@ Um parágrafo. Prazo total e marcos intermédios. Usa durações relativas se n�
 Um parágrafo. Termos claros: revisões incluídas, propriedade intelectual, confidencialidade, proteção mútua.
 
 8. Próximos Passos
-Um parágrafo. Instrução clara sobre o que o cliente faz agora para avançar. Cria momentum sem pressão.`;
+Um parágrafo. Instrução clara sobre o que o cliente faz agora para avançar. Cria momentum sem pressão.`,
+    closingPatterns: [
+      /Com os melhores cumprimentos[\s\S]*$/i,
+      /Atenciosamente[\s\S]*$/i,
+      /Cordialmente[\s\S]*$/i,
+      /Não hesite em contactar[\s\S]*$/i,
+      /Aguardo o vosso contacto[\s\S]*$/i,
+    ],
+    fallback: 'Erro ao gerar proposta.',
+  },
+  en: {
+    briefingShort: (wordCount: number) =>
+      `The brief is short (${wordCount} words). Infer plausible context based on the available details and sector. For values or dates not mentioned: use realistic ranges or relative durations — never invent specific concrete details.`,
+    briefingDetailed: `The brief is detailed. Use all the provided details to personalize every section. Prioritize the brief's real information over generic values or deadlines.`,
+    system: (sectorContext: string) => `You are a senior commercial consultant who helps creatives, agencies, and independent professionals write proposals that close deals. Your proposals are known for being specific, confident, persuasive, and human — never generic.
+
+${sectorContext}Absolute rules:
+- Write the ENTIRE proposal in English — section titles, lists, and body text. The sector guidance above may be written in Portuguese for reference only; translate all terminology naturally into English.
+- Tone: confident, professional, and human. Direct without being cold.
+- Use exclusively the details from the brief — this proposal must feel tailor-made, never a template.
+- Strictly forbidden: "I'm thrilled to", "it is with great pleasure", "dear valued client", "I hope this meets your expectations", "feel free to reach out", "I understand that", "I appreciate that", "it was a pleasure to learn", "I'm happy to".
+- Never state understanding in the first person — show expertise through specific facts, not phrases like "I understand."
+- Always write in the first person singular — the proposal is written BY the professional, not ABOUT them. Never use third-person references to the author.
+- Section titles in the format "1. Title" — no asterisks, no #, no separator dashes.
+- End after "8. Next Steps" — no closing signatures, no "[Name]" or "[Title]".
+- Total length: between 650 and 850 words.`,
+    user: (descricao: string, briefingGuidance: string) => `Professional's brief:
+
+"${descricao}"
+
+${briefingGuidance}
+
+Write the proposal in English with this exact structure:
+
+1. Introduction
+Two paragraphs. Frame the proposal professionally and confidently. Show understanding of the client's context without generic opening phrases.
+
+2. Project Understanding
+Two paragraphs. Precisely describe the project, its goals, and what will be delivered. Use the brief's details. Avoid "I understand that" or similar.
+
+3. Scope of Work
+One introductory paragraph + a detailed list of deliverables. Specify format, quantity, and what is excluded if relevant.
+
+4. Our Process
+Two paragraphs. Describe phases, methodology, and client communication. What you need from the client to move forward. Build confidence in your method.
+
+5. Investment
+One paragraph. Frame the price as an investment decision. Present concrete figures (or ranges if not specified in the brief). Clear payment terms.
+
+6. Timeline
+One paragraph. Total timeline and intermediate milestones. Use relative durations if no specific dates are given in the brief.
+
+7. Terms & Guarantees
+One paragraph. Clear terms: revisions included, intellectual property, confidentiality, mutual protection.
+
+8. Next Steps
+One paragraph. Clear instruction on what the client should do now to move forward. Create momentum without pressure.`,
+    closingPatterns: [
+      /Best regards[\s\S]*$/i,
+      /Kind regards[\s\S]*$/i,
+      /Sincerely[\s\S]*$/i,
+      /Feel free to contact[\s\S]*$/i,
+      /Looking forward to hearing from you[\s\S]*$/i,
+    ],
+    fallback: 'Error generating proposal.',
+  },
+} as const;
+
+export async function POST(request: NextRequest) {
+  const supabase = await createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 });
+
+  // Enforce free limit server-side
+  const { data: profile } = await supabase.from('profiles').select('is_premium').eq('id', session.user.id).single();
+  const isPremium = profile?.is_premium ?? false;
+  if (!isPremium) {
+    const { count } = await supabase.from('propostas').select('id', { count: 'exact', head: true }).eq('user_id', session.user.id);
+    if ((count ?? 0) >= 3) {
+      return NextResponse.json({ error: 'Limite gratuito atingido. Faça upgrade para continuar.' }, { status: 403 });
+    }
+  }
+
+  try {
+    const { descricao, setor = '', lang = 'pt' } = await request.json();
+    const p = lang === 'en' ? prompts.en : prompts.pt;
+
+    if (!descricao || descricao.trim().length < 15) {
+      return NextResponse.json({ error: 'Por favor, descreva o projeto com mais detalhe.' }, { status: 400 });
+    }
+
+    const sectorContext = setor && sectorContexts[setor]
+      ? `${sectorContexts[setor]}\n\n`
+      : '';
+
+    const wordCount = descricao.trim().split(/\s+/).length;
+    const briefingGuidance = wordCount < 40 ? p.briefingShort(wordCount) : p.briefingDetailed;
+
+    const systemMessage = p.system(sectorContext);
+    const userMessage = p.user(descricao, briefingGuidance);
 
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
@@ -144,20 +217,18 @@ Um parágrafo. Instrução clara sobre o que o cliente faz agora para avançar. 
       max_tokens: 2500,
     });
 
-    let propostaGerada = completion.choices[0]?.message?.content?.trim() || 'Erro ao gerar proposta.';
+    let propostaGerada = completion.choices[0]?.message?.content?.trim() || p.fallback;
 
     propostaGerada = propostaGerada
       .replace(/\*\*/g, '')
       .replace(/\*/g, '')
-      .replace(/^#+\s*/gm, '')
-      .replace(/Com os melhores cumprimentos[\s\S]*$/i, '')
-      .replace(/Atenciosamente[\s\S]*$/i, '')
-      .replace(/Cordialmente[\s\S]*$/i, '')
-      .replace(/Não hesite em contactar[\s\S]*$/i, '')
-      .replace(/Aguardo o vosso contacto[\s\S]*$/i, '')
-      .trim();
+      .replace(/^#+\s*/gm, '');
 
-    return NextResponse.json({ proposta: propostaGerada, sucesso: true });
+    for (const pattern of p.closingPatterns) {
+      propostaGerada = propostaGerada.replace(pattern, '');
+    }
+
+    return NextResponse.json({ proposta: propostaGerada.trim(), sucesso: true });
 
   } catch (error: any) {
     console.error('Erro na API:', error);

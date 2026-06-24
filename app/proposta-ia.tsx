@@ -5,6 +5,7 @@ import { Download, Loader2, Clock, CheckCircle, FileText, LogOut, Plus, Trash2, 
 import { jsPDF } from 'jspdf';
 import { User } from '@supabase/supabase-js';
 import { createBrowserClient } from '@supabase/ssr';
+import { translations, useLang } from './lib/i18n';
 
 interface Proposta {
   id: string;
@@ -33,20 +34,6 @@ const C = {
 
 const FREE_LIMIT = 3;
 
-const SETORES = [
-  { value: '', label: 'Setor (opcional)' },
-  { value: 'fotografia', label: 'Fotografia & Vídeo' },
-  { value: 'design', label: 'Design & Branding' },
-  { value: '3d', label: '3D & Visualização' },
-  { value: 'web', label: 'Desenvolvimento Web' },
-  { value: 'marketing', label: 'Marketing & Comunicação' },
-  { value: 'arquitetura', label: 'Arquitetura & Interiores' },
-  { value: 'construcao', label: 'Construção & Renovação' },
-  { value: 'consultoria', label: 'Consultoria' },
-  { value: 'conteudo', label: 'Produção de Conteúdo' },
-  { value: 'outro', label: 'Outro' },
-];
-
 export default function PropostaIA({ user }: PropostaIAProps) {
   const [descricao, setDescricao] = useState('');
   const [nomeCliente, setNomeCliente] = useState('');
@@ -66,6 +53,10 @@ export default function PropostaIA({ user }: PropostaIAProps) {
   const [upgradeSuccess, setUpgradeSuccess] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'annual'>('annual');
   const [checkoutError, setCheckoutError] = useState('');
+  const [lang, setLang] = useLang();
+
+  const t = translations[lang].dashboard;
+  const SETORES = t.sectors;
 
   const supabase = useMemo(() => createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -113,10 +104,10 @@ export default function PropostaIA({ user }: PropostaIAProps) {
       if (data.url) {
         window.location.href = data.url;
       } else {
-        setCheckoutError(data.error || 'Erro ao iniciar o pagamento. Tente novamente.');
+        setCheckoutError(data.error || t.errors.checkout);
       }
     } catch {
-      setCheckoutError('Erro de ligação. Tente novamente.');
+      setCheckoutError(t.errors.connection);
     } finally {
       setLoadingCheckout(false);
     }
@@ -135,7 +126,7 @@ export default function PropostaIA({ user }: PropostaIAProps) {
 
   const gerarProposta = async () => {
     if (!descricao.trim() || !nomeCliente.trim() || !nomeUtilizador.trim()) {
-      alert('Preencha o nome do autor, cliente e briefing.');
+      alert(t.alerts.fillRequired);
       return;
     }
     if (!isPremium && propostasSalvas.length >= FREE_LIMIT) {
@@ -148,7 +139,7 @@ export default function PropostaIA({ user }: PropostaIAProps) {
       const res = await fetch('/api/gerar-proposta', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ descricao, setor }),
+        body: JSON.stringify({ descricao, setor, lang }),
       });
       if (res.status === 401) { window.location.href = '/'; return; }
       const data = await res.json();
@@ -157,7 +148,7 @@ export default function PropostaIA({ user }: PropostaIAProps) {
         await supabase.from('propostas').insert({
           user_id: user.id, nome_cliente: nomeCliente, descricao, proposta_texto: data.proposta,
         });
-        setMensagemSucesso('Proposta gerada com sucesso!');
+        setMensagemSucesso(t.alerts.successGenerated);
         await carregarHistorico();
         setTimeout(() => setMensagemSucesso(''), 4000);
       }
@@ -165,7 +156,7 @@ export default function PropostaIA({ user }: PropostaIAProps) {
   };
 
   const apagarProposta = async (id: string) => {
-    if (!window.confirm('Eliminar esta proposta? Esta ação não pode ser revertida.')) return;
+    if (!window.confirm(t.alerts.confirmDelete)) return;
     await supabase.from('propostas').delete().eq('id', id).eq('user_id', user.id);
     setPropostasSalvas(prev => prev.filter(p => p.id !== id));
   };
@@ -462,7 +453,7 @@ export default function PropostaIA({ user }: PropostaIAProps) {
       {upgradeSuccess && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-xl font-semibold text-sm flex items-center gap-2.5"
           style={{ background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.3)', color: C.amber, backdropFilter: 'blur(12px)' }}>
-          <CheckCircle className="w-4 h-4" /> Plano Pro ativado. Bem-vindo ao Seshat Pro!
+          <CheckCircle className="w-4 h-4" /> {t.upgradeBanner}
         </div>
       )}
 
@@ -475,15 +466,15 @@ export default function PropostaIA({ user }: PropostaIAProps) {
               style={{ background: 'rgba(245,158,11,0.08)', border: `1px solid rgba(245,158,11,0.2)` }}>
               <Lock className="w-7 h-7" style={{ color: C.amber }} />
             </div>
-            <h2 className="text-3xl font-black mb-2" style={{ color: C.text }}>{atLimit ? 'Limite atingido.' : 'Seshat Pro'}</h2>
+            <h2 className="text-3xl font-black mb-2" style={{ color: C.text }}>{atLimit ? t.upgradeModal.limitTitle : t.upgradeModal.title}</h2>
             <p className="text-sm mb-6" style={{ color: C.textMuted }}>
-              {atLimit ? `Utilizou as suas ${FREE_LIMIT} propostas gratuitas.` : 'Propostas ilimitadas, PDFs sem marca de água.'}
+              {atLimit ? t.upgradeModal.limitDesc(FREE_LIMIT) : t.upgradeModal.desc}
             </p>
 
             {/* Barra de progresso */}
             <div className="rounded-xl p-4 mb-6" style={{ background: C.surface, border: `1px solid ${C.border}` }}>
               <div className="flex justify-between items-center mb-2">
-                <span className="text-xs font-semibold" style={{ color: C.textMuted }}>Plano Gratuito</span>
+                <span className="text-xs font-semibold" style={{ color: C.textMuted }}>{t.upgradeModal.freePlan}</span>
                 <span className="text-xs font-black" style={{ color: atLimit ? '#F87171' : C.amber }}>{usedCount} / {FREE_LIMIT}</span>
               </div>
               <div className="h-1.5 rounded-full w-full overflow-hidden" style={{ background: C.border }}>
@@ -493,12 +484,8 @@ export default function PropostaIA({ user }: PropostaIAProps) {
 
             {/* Benefícios Pro */}
             <div className="text-left space-y-3 mb-6 rounded-xl p-4" style={{ background: C.surface, border: `1px solid ${C.border}` }}>
-              <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: C.textFaint }}>Plano Pro inclui</p>
-              {[
-                'Propostas ilimitadas',
-                'PDFs sem marca de água',
-                'Histórico completo de propostas',
-              ].map((b, i) => (
+              <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: C.textFaint }}>{t.upgradeModal.proIncludes}</p>
+              {t.upgradeModal.benefits.map((b, i) => (
                 <div key={i} className="flex items-center gap-2.5">
                   <div className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0"
                     style={{ background: 'rgba(245,158,11,0.12)' }}>
@@ -512,8 +499,8 @@ export default function PropostaIA({ user }: PropostaIAProps) {
             {/* Seletor de plano */}
             <div className="grid grid-cols-2 gap-3 mb-4">
               {[
-                { id: 'monthly' as const, price: '€12', period: '/mês', note: 'Renovação mensal' },
-                { id: 'annual' as const, price: '€99', period: '/ano', note: '€8,25/mês · poupas €45', badge: 'Melhor valor' },
+                { id: 'monthly' as const, ...t.upgradeModal.monthly },
+                { id: 'annual' as const, ...t.upgradeModal.annual },
               ].map(plan => (
                 <button key={plan.id} onClick={() => setSelectedPlan(plan.id)}
                   className="relative pt-5 pb-3.5 px-3.5 rounded-xl text-left transition-all"
@@ -539,7 +526,7 @@ export default function PropostaIA({ user }: PropostaIAProps) {
               className="w-full py-3.5 rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-all mb-5"
               style={{ background: C.amber, color: C.bg, opacity: loadingCheckout ? 0.7 : 1, cursor: loadingCheckout ? 'not-allowed' : 'pointer' }}>
               {loadingCheckout && <Loader2 className="animate-spin w-4 h-4" />}
-              {selectedPlan === 'annual' ? 'Começar Plano Pro — €99/ano' : 'Começar Plano Pro — €12/mês'}
+              {selectedPlan === 'annual' ? t.upgradeModal.ctaAnnual : t.upgradeModal.ctaMonthly}
             </button>
 
             <button onClick={() => { setShowUpgradeModal(false); if (atLimit) setAbaAtiva('historico'); }}
@@ -547,7 +534,7 @@ export default function PropostaIA({ user }: PropostaIAProps) {
               style={{ color: C.textFaint }}
               onMouseEnter={e => ((e.currentTarget as HTMLElement).style.color = C.textMuted)}
               onMouseLeave={e => ((e.currentTarget as HTMLElement).style.color = C.textFaint)}>
-              {atLimit ? 'Ver arquivo →' : 'Talvez mais tarde'}
+              {atLimit ? t.upgradeModal.viewArchive : t.upgradeModal.maybeLater}
             </button>
           </div>
         </div>
@@ -578,7 +565,7 @@ export default function PropostaIA({ user }: PropostaIAProps) {
               <button onClick={() => setShowUpgradeModal(true)}
                 className="flex items-center gap-1 text-xs font-black px-3 py-1.5 rounded-lg transition-all"
                 style={{ color: C.amber, border: `1px solid rgba(245,158,11,0.3)`, background: 'rgba(245,158,11,0.08)' }}>
-                Upgrade Pro →
+                {t.header.upgrade}
               </button>
             </div>
           )}
@@ -586,13 +573,13 @@ export default function PropostaIA({ user }: PropostaIAProps) {
             <button onClick={handlePortal} disabled={loadingCheckout}
               className="hidden sm:flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg transition-all"
               style={{ color: C.amber, border: `1px solid rgba(245,158,11,0.25)`, background: 'rgba(245,158,11,0.06)', cursor: loadingCheckout ? 'not-allowed' : 'pointer' }}>
-              Pro ✓
+              {t.header.pro}
             </button>
           )}
           <span className="text-xs hidden sm:block" style={{ color: C.textFaint }}>{user.email}</span>
           <button onClick={handleLogout} className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all"
             style={{ color: C.textMuted, border: `1px solid ${C.border}` }}>
-            <LogOut className="w-3.5 h-3.5" /> Sair
+            <LogOut className="w-3.5 h-3.5" /> {t.header.logout}
           </button>
         </div>
       </header>
@@ -604,12 +591,12 @@ export default function PropostaIA({ user }: PropostaIAProps) {
           <button onClick={() => setAbaAtiva('nova')}
             className="px-5 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center"
             style={abaAtiva === 'nova' ? { background: '#292524', color: C.text } : { color: C.textMuted }}>
-            <Plus className="w-3.5 h-3.5 mr-1.5" />Nova Proposta
+            <Plus className="w-3.5 h-3.5 mr-1.5" />{t.tabs.new}
           </button>
           <button onClick={() => { setAbaAtiva('historico'); carregarHistorico(); }}
             className="px-5 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 transition-all"
             style={abaAtiva === 'historico' ? { background: '#292524', color: C.text } : { color: C.textMuted }}>
-            <Clock className="w-3.5 h-3.5" />Arquivo
+            <Clock className="w-3.5 h-3.5" />{t.tabs.archive}
             <span className="px-1.5 py-0.5 rounded-md text-[10px] font-bold" style={{ background: C.textFaint, color: C.textMuted }}>
               {propostasSalvas.length}
             </span>
@@ -622,12 +609,12 @@ export default function PropostaIA({ user }: PropostaIAProps) {
             {/* Formulário */}
             <div className="space-y-4">
               <div className="rounded-2xl p-6" style={{ background: C.surface, border: `1px solid ${C.border}` }}>
-                <p className="text-[10px] font-bold uppercase tracking-wider mb-5" style={{ color: C.textMuted }}>Dados da proposta</p>
+                <p className="text-[10px] font-bold uppercase tracking-wider mb-5" style={{ color: C.textMuted }}>{t.form.sectionTitle}</p>
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-3">
                     {[
-                      { label: 'Autor *', val: nomeUtilizador, set: setNomeUtilizador, ph: 'O seu nome ou empresa' },
-                      { label: 'Cliente *', val: nomeCliente, set: setNomeCliente, ph: 'Nome do cliente' },
+                      { label: t.form.author, val: nomeUtilizador, set: setNomeUtilizador, ph: t.form.authorPh },
+                      { label: t.form.client, val: nomeCliente, set: setNomeCliente, ph: t.form.clientPh },
                     ].map(f => (
                       <div key={f.label}>
                         <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5" style={{ color: C.textFaint }}>{f.label}</label>
@@ -641,8 +628,8 @@ export default function PropostaIA({ user }: PropostaIAProps) {
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     {[
-                      { label: 'Contacto', val: contacto, set: setContacto, ph: 'Email ou telefone' },
-                      { label: 'Cidade', val: morada, set: setMorada, ph: 'Lisboa, Portugal' },
+                      { label: t.form.contact, val: contacto, set: setContacto, ph: t.form.contactPh },
+                      { label: t.form.city, val: morada, set: setMorada, ph: t.form.cityPh },
                     ].map(f => (
                       <div key={f.label}>
                         <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5" style={{ color: C.textFaint }}>{f.label}</label>
@@ -655,7 +642,7 @@ export default function PropostaIA({ user }: PropostaIAProps) {
                     ))}
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5" style={{ color: C.textFaint }}>Setor</label>
+                    <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5" style={{ color: C.textFaint }}>{t.form.sector}</label>
                     <select value={setor} onChange={e => setSetor(e.target.value)}
                       className="w-full rounded-xl px-3.5 py-2.5 text-sm outline-none transition-colors appearance-none"
                       style={{ background: C.bg, border: `1px solid ${C.border}`, color: setor ? C.text : C.textFaint }}
@@ -667,9 +654,9 @@ export default function PropostaIA({ user }: PropostaIAProps) {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5" style={{ color: C.textFaint }}>Briefing do Projeto *</label>
+                    <label className="block text-[10px] font-bold uppercase tracking-wider mb-1.5" style={{ color: C.textFaint }}>{t.form.briefing}</label>
                     <textarea value={descricao} onChange={e => setDescricao(e.target.value)}
-                      placeholder="Descreva o projeto: o que inclui, prazo, preço, cliente, contexto..."
+                      placeholder={t.form.briefingPh}
                       className="w-full h-44 rounded-xl p-4 text-sm resize-none outline-none transition-colors leading-relaxed"
                       style={{ background: C.bg, border: `1px solid ${C.border}`, color: C.text }}
                       onFocus={e => (e.target.style.borderColor = C.amber)}
@@ -680,11 +667,11 @@ export default function PropostaIA({ user }: PropostaIAProps) {
 
               {/* Seletor de tema */}
               <div className="rounded-2xl p-5" style={{ background: C.surface, border: `1px solid ${C.border}` }}>
-                <p className="text-[10px] font-bold uppercase tracking-wider mb-4" style={{ color: C.textFaint }}>Tema do PDF</p>
+                <p className="text-[10px] font-bold uppercase tracking-wider mb-4" style={{ color: C.textFaint }}>{t.theme.title}</p>
                 <div className="grid grid-cols-2 gap-3">
                   {[
                     {
-                      id: 'branco' as Tema, label: 'Branco', sub: 'Minimalista',
+                      id: 'branco' as Tema, label: t.theme.whiteLabel, sub: t.theme.whiteSub,
                       preview: (
                         <div className="rounded-lg h-14 mb-3 overflow-hidden flex flex-col" style={{ background: '#FAFAF8' }}>
                           <div className="h-1" style={{ background: C.amber }} />
@@ -697,7 +684,7 @@ export default function PropostaIA({ user }: PropostaIAProps) {
                       ),
                     },
                     {
-                      id: 'preto' as Tema, label: 'Preto', sub: 'Premium',
+                      id: 'preto' as Tema, label: t.theme.blackLabel, sub: t.theme.blackSub,
                       preview: (
                         <div className="rounded-lg h-14 mb-3 overflow-hidden" style={{ background: '#0D0B0A' }}>
                           <div className="h-1 w-full" style={{ background: C.amber }} />
@@ -712,14 +699,14 @@ export default function PropostaIA({ user }: PropostaIAProps) {
                         </div>
                       ),
                     },
-                  ].map(t => (
-                    <button key={t.id} onClick={() => setTema(t.id)}
+                  ].map(tm => (
+                    <button key={tm.id} onClick={() => setTema(tm.id)}
                       className="relative p-3.5 rounded-xl text-left transition-all"
-                      style={{ border: `2px solid ${tema === t.id ? C.amber : C.border}`, background: tema === t.id ? C.amberDim : 'transparent' }}>
-                      {t.preview}
-                      <p className="text-xs font-black" style={{ color: C.text }}>{t.label}</p>
-                      <p className="text-[10px]" style={{ color: C.textMuted }}>{t.sub}</p>
-                      {tema === t.id && <CheckCircle className="w-3.5 h-3.5 absolute top-2.5 right-2.5" style={{ color: C.amber }} />}
+                      style={{ border: `2px solid ${tema === tm.id ? C.amber : C.border}`, background: tema === tm.id ? C.amberDim : 'transparent' }}>
+                      {tm.preview}
+                      <p className="text-xs font-black" style={{ color: C.text }}>{tm.label}</p>
+                      <p className="text-[10px]" style={{ color: C.textMuted }}>{tm.sub}</p>
+                      {tema === tm.id && <CheckCircle className="w-3.5 h-3.5 absolute top-2.5 right-2.5" style={{ color: C.amber }} />}
                     </button>
                   ))}
                 </div>
@@ -737,15 +724,15 @@ export default function PropostaIA({ user }: PropostaIAProps) {
                         ? { background: 'transparent', color: C.textFaint, border: `1px solid ${C.border}`, cursor: 'not-allowed' }
                         : { background: C.amber, color: C.bg, boxShadow: '0 4px 20px rgba(245,158,11,0.28)' }}>
                   {atLimit
-                    ? <><Lock className="w-4 h-4" /> Limite atingido — Ver planos</>
+                    ? <><Lock className="w-4 h-4" /> {t.generate.limitButton}</>
                     : loading
-                      ? <><Loader2 className="animate-spin w-4 h-4" /> Seshat está a escrever...</>
-                      : 'Gerar Proposta'}
+                      ? <><Loader2 className="animate-spin w-4 h-4" /> {t.generate.loading}</>
+                      : t.generate.button}
                 </button>
                 {!isPremium && !atLimit && (
                   <p className="text-[10px] text-center" style={{ color: C.textFaint }}>
-                    {FREE_LIMIT - usedCount} proposta{FREE_LIMIT - usedCount !== 1 ? 's' : ''} gratuita{FREE_LIMIT - usedCount !== 1 ? 's' : ''} restante{FREE_LIMIT - usedCount !== 1 ? 's' : ''}
-                    {usedCount > 0 && ' · PDFs incluem marca de água discreta'}
+                    {t.generate.remaining(FREE_LIMIT - usedCount)}
+                    {usedCount > 0 && ` · ${t.generate.watermarkNote}`}
                   </p>
                 )}
               </div>
@@ -754,12 +741,12 @@ export default function PropostaIA({ user }: PropostaIAProps) {
             {/* Preview */}
             <div className="rounded-2xl flex flex-col overflow-hidden" style={{ minHeight: '680px', border: `1px solid ${C.border}`, background: `${C.surface}80` }}>
               <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: `1px solid ${C.borderLight}` }}>
-                <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: C.textMuted }}>Preview e edição</p>
+                <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: C.textMuted }}>{t.preview.title}</p>
                 {proposta && !loading && (
                   <button onClick={() => downloadPDF(proposta, nomeCliente)}
                     className="flex items-center gap-1.5 px-4 py-2 rounded-lg font-black text-xs transition-all"
                     style={{ background: C.text, color: C.bg }}>
-                    <Download className="w-3.5 h-3.5" /> Exportar PDF
+                    <Download className="w-3.5 h-3.5" /> {t.preview.exportPdf}
                   </button>
                 )}
               </div>
@@ -772,8 +759,8 @@ export default function PropostaIA({ user }: PropostaIAProps) {
                           style={{ background: C.amber, animation: `dot-bounce 1.2s ease-in-out ${i * 0.18}s infinite` }} />
                       ))}
                     </div>
-                    <p className="text-sm font-semibold" style={{ color: C.textMuted }}>Seshat está a escrever...</p>
-                    <p className="text-xs" style={{ color: C.textFaint }}>Este processo pode demorar alguns segundos.</p>
+                    <p className="text-sm font-semibold" style={{ color: C.textMuted }}>{t.preview.writingTitle}</p>
+                    <p className="text-xs" style={{ color: C.textFaint }}>{t.preview.writingSub}</p>
                   </div>
                 ) : proposta ? (
                   <textarea value={proposta} onChange={e => setProposta(e.target.value)}
@@ -787,8 +774,8 @@ export default function PropostaIA({ user }: PropostaIAProps) {
                       style={{ background: C.surfaceAlt, border: `1px solid ${C.borderLight}` }}>
                       <FileText className="w-6 h-6" style={{ color: C.textFaint }} />
                     </div>
-                    <p className="text-sm font-semibold mb-1" style={{ color: C.textFaint }}>Preencha o formulário</p>
-                    <p className="text-xs" style={{ color: '#2A2520' }}>e clique em "Gerar Proposta" para começar.</p>
+                    <p className="text-sm font-semibold mb-1" style={{ color: C.textFaint }}>{t.preview.emptyTitle}</p>
+                    <p className="text-xs" style={{ color: '#2A2520' }}>{t.preview.emptySub}</p>
                   </div>
                 )}
               </div>
@@ -806,17 +793,17 @@ export default function PropostaIA({ user }: PropostaIAProps) {
         {abaAtiva === 'historico' && (
           <div>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-black" style={{ color: C.text }}>Arquivo</h2>
+              <h2 className="text-xl font-black" style={{ color: C.text }}>{t.archive.title}</h2>
               <button onClick={() => setAbaAtiva('nova')}
                 className="flex items-center gap-1.5 px-5 py-2 rounded-xl font-black text-xs transition-all"
                 style={{ background: C.amber, color: C.bg }}>
-                <Plus className="w-3.5 h-3.5" /> Nova Proposta
+                <Plus className="w-3.5 h-3.5" /> {t.archive.newProposal}
               </button>
             </div>
             {propostasSalvas.length === 0 ? (
               <div className="text-center py-28 rounded-2xl" style={{ background: `${C.surface}80`, border: `1px solid ${C.border}` }}>
                 <FileText className="w-10 h-10 mx-auto mb-3" style={{ color: C.textFaint }} />
-                <p className="text-sm font-semibold" style={{ color: C.textMuted }}>Ainda não tem propostas guardadas.</p>
+                <p className="text-sm font-semibold" style={{ color: C.textMuted }}>{t.archive.empty}</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -828,7 +815,7 @@ export default function PropostaIA({ user }: PropostaIAProps) {
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1 min-w-0 pr-2">
                         <h4 className="font-black text-sm mb-0.5 truncate" style={{ color: C.text }}>{p.nome_cliente}</h4>
-                        <p className="text-xs" style={{ color: C.textFaint }}>{new Date(p.created_at).toLocaleDateString('pt-PT')}</p>
+                        <p className="text-xs" style={{ color: C.textFaint }}>{new Date(p.created_at).toLocaleDateString(lang === 'pt' ? 'pt-PT' : 'en-US')}</p>
                       </div>
                       <button onClick={() => apagarProposta(p.id)}
                         className="p-1.5 rounded-lg flex-shrink-0 transition-all"
@@ -845,14 +832,14 @@ export default function PropostaIA({ user }: PropostaIAProps) {
                         style={{ background: C.surfaceAlt, color: C.textMuted, border: `1px solid ${C.borderLight}` }}
                         onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = C.textFaint; el.style.color = C.text; }}
                         onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = C.borderLight; el.style.color = C.textMuted; }}>
-                        <Pencil className="w-3 h-3" /> Editar
+                        <Pencil className="w-3 h-3" /> {t.archive.edit}
                       </button>
                       <button onClick={() => downloadPDF(p.proposta_texto, p.nome_cliente, p.descricao)}
                         className="py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all"
                         style={{ background: C.surfaceAlt, color: C.textMuted, border: `1px solid ${C.borderLight}` }}
                         onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.background = C.amber; el.style.color = C.bg; el.style.borderColor = C.amber; }}
                         onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.background = C.surfaceAlt; el.style.color = C.textMuted; el.style.borderColor = C.borderLight; }}>
-                        <Download className="w-3 h-3" /> PDF
+                        <Download className="w-3 h-3" /> {t.archive.pdf}
                       </button>
                     </div>
                   </div>
@@ -862,6 +849,15 @@ export default function PropostaIA({ user }: PropostaIAProps) {
           </div>
         )}
       </div>
+
+      {/* LANGUAGE TOGGLE */}
+      <button
+        onClick={() => setLang(lang === 'pt' ? 'en' : 'pt')}
+        className="fixed rounded-full px-4 py-2 text-sm font-black transition-all hover:scale-105"
+        style={{ bottom: '1rem', right: '1rem', zIndex: 9999, background: C.amber, color: C.bg }}
+      >
+        {lang === 'pt' ? 'EN' : 'PT'}
+      </button>
     </div>
   );
 }

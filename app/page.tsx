@@ -3,14 +3,21 @@
 import { useState, useEffect, useMemo } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { FileText, ArrowRight, Loader2, PenLine, Wand2, Send, Layers, Archive } from 'lucide-react';
-import { type Lang, translations } from './lib/i18n';
+import { translations, useLang } from './lib/i18n';
 
 const AMBER = '#F59E0B';
 const BG = '#0C0A09';
 
-const DEMO_AUTOR = 'Atelier Forma';
-const DEMO_CLIENTE = 'João Rodrigues';
-const DEMO_DESC = '20 visualizações 3D, moradia nova. Projeto aprovado. Prazo 30 dias. Preço 5.500€.';
+const PDF_SECTION_LINES = [
+  [92, 84, 96, 78],
+  [88, 76, 90, 68, 82],
+  [94, 80, 92, 74, 88],
+  [86, 90, 78],
+  [80, 92, 70],
+  [84, 72],
+  [90, 82, 76],
+  [88, 64],
+];
 
 type DemoPhase = 'idle' | 'typing_autor' | 'typing_cliente' | 'typing_desc' | 'btn_hover' | 'loading' | 'pdf';
 
@@ -22,7 +29,7 @@ export default function LandingPage() {
   const [loading, setLoading] = useState(false);
   const [authMessage, setAuthMessage] = useState('');
   const [authIsError, setAuthIsError] = useState(false);
-  const [lang, setLang] = useState<Lang>('pt');
+  const [lang, setLang] = useLang();
 
   const t = translations[lang];
 
@@ -75,17 +82,18 @@ export default function LandingPage() {
       if (destroyed) return;
       setDemoAutor(''); setDemoCliente(''); setDemoDesc(''); setDemoPhase('idle');
 
-      let t = 900;
+      const demo = translations[lang].demo;
+      const delay = 900;
 
       go(() => {
         setDemoPhase('typing_autor');
-        typeField(DEMO_AUTOR, setDemoAutor, 55, () => {
+        typeField(demo.demoAutor, setDemoAutor, 55, () => {
           go(() => {
             setDemoPhase('typing_cliente');
-            typeField(DEMO_CLIENTE, setDemoCliente, 55, () => {
+            typeField(demo.demoCliente, setDemoCliente, 55, () => {
               go(() => {
                 setDemoPhase('typing_desc');
-                typeField(DEMO_DESC, setDemoDesc, 36, () => {
+                typeField(demo.demoDesc, setDemoDesc, 36, () => {
                   go(() => setDemoPhase('btn_hover'), 700);
                   go(() => setDemoPhase('loading'), 1700);
                   go(() => { setDemoPhase('pdf'); setPdfKey(k => k + 1); }, 4600);
@@ -95,7 +103,7 @@ export default function LandingPage() {
             });
           }, 400);
         });
-      }, t);
+      }, delay);
     };
 
     runDemo();
@@ -104,7 +112,7 @@ export default function LandingPage() {
       timeouts.forEach(clearTimeout);
       intervals.forEach(clearInterval);
     };
-  }, []);
+  }, [lang]);
 
   const openAuth = (mode: 'login' | 'signup') => {
     setAuthMode(mode); setShowAuth(true); setAuthMessage('');
@@ -137,16 +145,7 @@ export default function LandingPage() {
     />
   );
 
-  const pdfSections = [
-    { title: '1. Introdução', lines: [92, 84, 96, 78] },
-    { title: '2. Compreensão do Projeto', lines: [88, 76, 90, 68, 82] },
-    { title: '3. Âmbito dos Trabalhos', lines: [94, 80, 92, 74, 88] },
-    { title: '4. Processo de Trabalho', lines: [86, 90, 78] },
-    { title: '5. Investimento', lines: [80, 92, 70] },
-    { title: '6. Prazo de Entrega', lines: [84, 72] },
-    { title: '7. Termos e Garantias', lines: [90, 82, 76] },
-    { title: '8. Próximos Passos', lines: [88, 64] },
-  ];
+  const pdfSections = t.demo.sections.map((title, i) => ({ title, lines: PDF_SECTION_LINES[i] }));
 
   return (
     <div className="min-h-screen font-sans" style={{ background: BG, color: '#F5F0EC' }}>
@@ -326,17 +325,17 @@ export default function LandingPage() {
                       <div className="flex" style={{ minHeight: '200px' }}>
                         <div className="w-1.5 flex-shrink-0" style={{ background: AMBER }} />
                         <div className="flex-1 p-5">
-                          <p className="font-black text-lg leading-none mb-1" style={{ color: '#F5F0EC' }}>PROPOSTA</p>
-                          <p className="text-[9px] mb-4" style={{ color: AMBER }}>COMERCIAL</p>
+                          <p className="font-black text-lg leading-none mb-1" style={{ color: '#F5F0EC' }}>{t.demo.pdfTitle}</p>
+                          <p className="text-[9px] mb-4" style={{ color: AMBER }}>{t.demo.pdfSubtitle}</p>
                           <div className="mb-3" style={{ height: '0.5px', background: '#2A2520' }} />
-                          <p className="text-[6px] uppercase tracking-widest mb-1" style={{ color: '#5A5048' }}>Preparado para</p>
-                          <p className="font-black text-sm mb-3" style={{ color: '#F5F0EC' }}>João Rodrigues</p>
-                          <p className="text-[6px] uppercase tracking-widest mb-1.5" style={{ color: AMBER }}>Sobre o Projeto</p>
+                          <p className="text-[6px] uppercase tracking-widest mb-1" style={{ color: '#5A5048' }}>{t.demo.preparedFor}</p>
+                          <p className="font-black text-sm mb-3" style={{ color: '#F5F0EC' }}>{demoCliente}</p>
+                          <p className="text-[6px] uppercase tracking-widest mb-1.5" style={{ color: AMBER }}>{t.demo.aboutProject}</p>
                           <p className="text-[7px] leading-relaxed" style={{ color: '#5A5048' }}>
-                            20 visualizações 3D para moradia nova. Projeto aprovado. Prazo 30 dias. Preço 5.500€.
+                            {demoDesc}
                           </p>
                           <div className="mt-4 pt-3" style={{ borderTop: '1px solid #1A1614' }}>
-                            <p className="text-[6px]" style={{ color: '#3A3530' }}>Atelier Forma · 2026</p>
+                            <p className="text-[6px]" style={{ color: '#3A3530' }}>{demoAutor} · 2026</p>
                           </div>
                         </div>
                       </div>
