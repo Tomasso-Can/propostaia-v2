@@ -174,7 +174,7 @@ export default function PropostaIA({ user }: PropostaIAProps) {
   const downloadPDF = (propostaTexto: string, nomeClientePDF: string, _descricaoTexto: string = descricao) => {
     const doc = new jsPDF('p', 'mm', 'a4');
     const W = 210, H = 297;
-    const hoje = new Date().toLocaleDateString('pt-PT');
+    const hoje = new Date().toLocaleDateString(lang === 'en' ? 'en-US' : 'pt-PT');
 
     const isTitulo = (l: string) => /^\d+\.\s/.test(l.trim());
     const clean = (l: string) => l.replace(/\*\*/g, '').replace(/\*/g, '').trim();
@@ -190,38 +190,56 @@ export default function PropostaIA({ user }: PropostaIAProps) {
       doc.setDrawColor(200, 194, 186); doc.setLineWidth(0.3);
       for (let i = 0; i < 6; i++) doc.line(W - 55 + i * 7, 8, W - 55 + i * 7, 32);
 
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(13); doc.setTextColor(168, 158, 144);
-      doc.text('PROPOSTA', mL, 74);
+      // Author/company above client name
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(168, 158, 144);
+      doc.text(lang === 'en' ? 'PREPARED BY' : 'PREPARADO POR', mL, 58);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(100, 92, 84);
+      doc.text(nomeUtilizador.toUpperCase(), mL, 66);
 
-      doc.setFillColor(245, 158, 11); doc.rect(mL, 78, W - mL - mR, 2, 'F');
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(168, 158, 144);
+      doc.text(lang === 'en' ? 'PROPOSAL' : 'PROPOSTA', mL, 80);
+      doc.setFillColor(245, 158, 11); doc.rect(mL, 84, W - mL - mR, 2, 'F');
 
       doc.setFont('helvetica', 'bold'); doc.setFontSize(36); doc.setTextColor(15, 14, 13);
       const clienteLines = doc.splitTextToSize(nomeClientePDF, cW);
       doc.text(clienteLines, mL, 106);
 
-      // Bloco CONFIDENCIAL
+      // Subtitle + CONFIDENCIAL badge
       const clienteH = clienteLines.length * 13;
-      const blockY = 106 + clienteH + 10;
+      const subtitleY = 106 + clienteH + 6;
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(12); doc.setTextColor(168, 158, 144);
+      doc.text(lang === 'en' ? 'Commercial Proposal' : 'Proposta Comercial', mL, subtitleY);
+      const blockY = subtitleY + 16;
       doc.setFillColor(245, 158, 11); doc.rect(mL, blockY, 3, 18, 'F');
       doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(245, 158, 11);
-      doc.text('CONFIDENCIAL', mL + 7, blockY + 11);
+      doc.text(lang === 'en' ? 'CONFIDENTIAL' : 'CONFIDENCIAL', mL + 7, blockY + 11);
 
-      doc.setDrawColor(216, 210, 202); doc.setLineWidth(0.25); doc.line(mL, 240, W - mR, 240);
+      // Decorative middle element: amber accent + line
+      const midY = Math.max(205, blockY + 28);
+      doc.setFillColor(245, 158, 11); doc.rect(mL, midY - 0.5, 24, 1.5, 'F');
+      doc.setDrawColor(200, 194, 186); doc.setLineWidth(0.25); doc.line(mL + 30, midY, W - mR, midY);
 
+      // Date in prominent position
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(168, 158, 144);
+      doc.text(lang === 'en' ? 'DATE' : 'DATA', mL, midY + 12);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(80, 72, 64);
+      doc.text(hoje, mL, midY + 21);
+
+      // Separator + author block
+      const sepY = Math.max(246, midY + 48);
+      doc.setDrawColor(216, 210, 202); doc.setLineWidth(0.25); doc.line(mL, sepY, W - mR, sepY);
       doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(15, 14, 13);
-      doc.text(nomeUtilizador, mL, 256);
-      let authorY = 256;
+      doc.text(nomeUtilizador, mL, sepY + 14);
+      let authorY = sepY + 14;
       if (contacto) { authorY += 6; doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(150, 142, 134); doc.text(contacto, mL, authorY); }
       if (morada) { authorY += 5; doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(150, 142, 134); doc.text(morada, mL, authorY); }
 
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(150, 142, 132);
-      doc.text(hoje, W - mR, 284, { align: 'right' });
       doc.setFillColor(22, 20, 18); doc.rect(0, 294, W, 3, 'F');
       if (!isPremium) {
         doc.setFont('helvetica', 'bold'); doc.setFontSize(38); doc.setTextColor(155, 148, 138);
         for (let row = 0; row < 6; row++) {
           for (let col = 0; col < 4; col++) {
-            doc.text('VERSÃO GRATUITA', col * 80 - 30, row * 62 + 25, { angle: 45 });
+            doc.text(lang === 'en' ? 'FREE VERSION' : 'VERSÃO GRATUITA', col * 80 - 30, row * 62 + 25, { angle: 45 });
           }
         }
       }
@@ -235,7 +253,7 @@ export default function PropostaIA({ user }: PropostaIAProps) {
           doc.setFont('helvetica', 'bold'); doc.setFontSize(38); doc.setTextColor(155, 148, 138);
           for (let row = 0; row < 6; row++) {
             for (let col = 0; col < 4; col++) {
-              doc.text('VERSÃO GRATUITA', col * 80 - 30, row * 62 + 25, { angle: 45 });
+              doc.text(lang === 'en' ? 'FREE VERSION' : 'VERSÃO GRATUITA', col * 80 - 30, row * 62 + 25, { angle: 45 });
             }
           }
         }
@@ -293,8 +311,8 @@ export default function PropostaIA({ user }: PropostaIAProps) {
       doc.line(mL, y, mL + 60, y);
       doc.line(mL + 80, y, mL + 80 + 45, y);
       doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(168, 158, 144);
-      doc.text('Assinatura', mL, y + 5);
-      doc.text('Data', mL + 80, y + 5);
+      doc.text(lang === 'en' ? 'Signature' : 'Assinatura', mL, y + 5);
+      doc.text(lang === 'en' ? 'Date' : 'Data', mL + 80, y + 5);
 
       // Paginação
       const total = doc.internal.pages.length - 1;
@@ -318,37 +336,56 @@ export default function PropostaIA({ user }: PropostaIAProps) {
       doc.setDrawColor(60, 50, 40); doc.setLineWidth(0.3);
       for (let i = 0; i < 6; i++) doc.line(W - 55 + i * 7, 8, W - 55 + i * 7, 32);
 
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(13); doc.setTextColor(90, 80, 70);
-      doc.text('PROPOSTA', mL, 74);
-      doc.setFillColor(245, 158, 11); doc.rect(mL, 78, W - mL - mR, 2, 'F');
+      // Author/company above client name
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(90, 80, 70);
+      doc.text(lang === 'en' ? 'PREPARED BY' : 'PREPARADO POR', mL, 58);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(140, 126, 108);
+      doc.text(nomeUtilizador.toUpperCase(), mL, 66);
+
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(90, 80, 70);
+      doc.text(lang === 'en' ? 'PROPOSAL' : 'PROPOSTA', mL, 80);
+      doc.setFillColor(245, 158, 11); doc.rect(mL, 84, W - mL - mR, 2, 'F');
 
       doc.setFont('helvetica', 'bold'); doc.setFontSize(36); doc.setTextColor(245, 240, 236);
       const clienteLines = doc.splitTextToSize(nomeClientePDF.toUpperCase(), W - mL - mR);
       doc.text(clienteLines, mL, 106);
 
-      // Bloco CONFIDENCIAL
+      // Subtitle + CONFIDENCIAL badge
       const clienteH = clienteLines.length * 13;
-      const blockY = 106 + clienteH + 10;
+      const subtitleY = 106 + clienteH + 6;
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(12); doc.setTextColor(90, 80, 70);
+      doc.text(lang === 'en' ? 'Commercial Proposal' : 'Proposta Comercial', mL, subtitleY);
+      const blockY = subtitleY + 16;
       doc.setFillColor(245, 158, 11); doc.rect(mL, blockY, 3, 18, 'F');
       doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(245, 158, 11);
-      doc.text('CONFIDENCIAL', mL + 7, blockY + 11);
+      doc.text(lang === 'en' ? 'CONFIDENTIAL' : 'CONFIDENCIAL', mL + 7, blockY + 11);
 
-      doc.setDrawColor(42, 37, 32); doc.setLineWidth(0.25); doc.line(mL, 240, W - mR, 240);
+      // Decorative middle element: amber accent + subtle line
+      const midY = Math.max(210, blockY + 28);
+      doc.setFillColor(245, 158, 11); doc.rect(mL, midY - 0.5, 24, 1.5, 'F');
+      doc.setDrawColor(42, 37, 32); doc.setLineWidth(0.25); doc.line(mL + 30, midY, W - mR, midY);
 
+      // Date in prominent position
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(90, 80, 70);
+      doc.text(lang === 'en' ? 'DATE' : 'DATA', mL, midY + 12);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(155, 140, 120);
+      doc.text(hoje, mL, midY + 22);
+
+      // Separator + author block
+      const sepY = Math.max(248, midY + 50);
+      doc.setDrawColor(42, 37, 32); doc.setLineWidth(0.25); doc.line(mL, sepY, W - mR, sepY);
       doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(245, 240, 236);
-      doc.text(nomeUtilizador, mL, 256);
-      let authorY = 256;
+      doc.text(nomeUtilizador, mL, sepY + 14);
+      let authorY = sepY + 14;
       if (contacto) { authorY += 6; doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(106, 96, 86); doc.text(contacto, mL, authorY); }
       if (morada) { authorY += 5; doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(106, 96, 86); doc.text(morada, mL, authorY); }
 
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(90, 80, 70);
-      doc.text(hoje, W - mR, 284, { align: 'right' });
       doc.setFillColor(245, 158, 11); doc.rect(0, H - 5, W, 5, 'F');
       if (!isPremium) {
         doc.setFont('helvetica', 'bold'); doc.setFontSize(38); doc.setTextColor(42, 36, 30);
         for (let row = 0; row < 6; row++) {
           for (let col = 0; col < 4; col++) {
-            doc.text('VERSÃO GRATUITA', col * 80 - 30, row * 62 + 25, { angle: 45 });
+            doc.text(lang === 'en' ? 'FREE VERSION' : 'VERSÃO GRATUITA', col * 80 - 30, row * 62 + 25, { angle: 45 });
           }
         }
       }
@@ -371,7 +408,7 @@ export default function PropostaIA({ user }: PropostaIAProps) {
           doc.setFont('helvetica', 'bold'); doc.setFontSize(38); doc.setTextColor(155, 148, 138);
           for (let row = 0; row < 6; row++) {
             for (let col = 0; col < 4; col++) {
-              doc.text('VERSÃO GRATUITA', col * 80 - 30, row * 62 + 25, { angle: 45 });
+              doc.text(lang === 'en' ? 'FREE VERSION' : 'VERSÃO GRATUITA', col * 80 - 30, row * 62 + 25, { angle: 45 });
             }
           }
         }
@@ -423,8 +460,8 @@ export default function PropostaIA({ user }: PropostaIAProps) {
       doc.line(textX, y, textX + 60, y);
       doc.line(textX + 80, y, textX + 80 + 45, y);
       doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(90, 80, 70);
-      doc.text('Assinatura', textX, y + 5);
-      doc.text('Data', textX + 80, y + 5);
+      doc.text(lang === 'en' ? 'Signature' : 'Assinatura', textX, y + 5);
+      doc.text(lang === 'en' ? 'Date' : 'Data', textX + 80, y + 5);
 
       // Paginação
       const total = doc.internal.pages.length - 1;
@@ -435,7 +472,7 @@ export default function PropostaIA({ user }: PropostaIAProps) {
       }
     }
 
-    doc.save(`Proposta_${nomeClientePDF.replace(/\s+/g, '_')}.pdf`);
+    doc.save(`${lang === 'en' ? 'Proposal' : 'Proposta'}_${nomeClientePDF.replace(/\s+/g, '_')}.pdf`);
   };
 
   // ─── RENDER ──────────────────────────────────────────────────────────────────
